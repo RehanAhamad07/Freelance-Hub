@@ -1,0 +1,293 @@
+import React, { useState, useContext, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import api from '../services/api';
+import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'react-toastify';
+import { AuthContext } from '../context/AuthContext';
+import { 
+  Briefcase, Type, AlignLeft, Tags, Clock, Send, Sparkles, ChevronDown,
+  Code, PenTool, Video, Pen, Music, MoreHorizontal 
+} from 'lucide-react';
+
+const currencySymbols = {
+  'USD': '$',
+  'INR': '₹'
+};
+
+const colorMap = {
+  'text-blue-500': { bg: 'bg-blue-500', borderText: 'text-blue-500', shadow: 'shadow-blue-500/30', gradient: 'from-blue-500 to-blue-600', lightGradient: 'from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900', accent: 'bg-gradient-to-r from-blue-400 to-blue-500' },
+  'text-pink-500': { bg: 'bg-pink-500', borderText: 'text-pink-500', shadow: 'shadow-pink-500/30', gradient: 'from-pink-500 to-pink-600', lightGradient: 'from-pink-50 to-pink-100 dark:from-pink-950 dark:to-pink-900', accent: 'bg-gradient-to-r from-pink-400 to-pink-500' },
+  'text-purple-500': { bg: 'bg-purple-500', borderText: 'text-purple-500', shadow: 'shadow-purple-500/30', gradient: 'from-purple-500 to-purple-600', lightGradient: 'from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900', accent: 'bg-gradient-to-r from-purple-400 to-purple-500' },
+  'text-orange-500': { bg: 'bg-orange-500', borderText: 'text-orange-500', shadow: 'shadow-orange-500/30', gradient: 'from-orange-500 to-orange-600', lightGradient: 'from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900', accent: 'bg-gradient-to-r from-orange-400 to-orange-500' },
+  'text-teal-500': { bg: 'bg-teal-500', borderText: 'text-teal-500', shadow: 'shadow-teal-500/30', gradient: 'from-teal-500 to-teal-600', lightGradient: 'from-teal-50 to-teal-100 dark:from-teal-950 dark:to-teal-900', accent: 'bg-gradient-to-r from-teal-400 to-teal-500' },
+  'text-gray-500': { bg: 'bg-gray-500', borderText: 'text-gray-500', shadow: 'shadow-gray-500/30', gradient: 'from-gray-500 to-gray-600', lightGradient: 'from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900', accent: 'bg-gradient-to-r from-gray-400 to-gray-500' },
+};
+
+const categories = [
+  { name: 'Programming & Tech', icon: Code, color: 'text-blue-500', bgHover: 'hover:bg-blue-50 dark:hover:bg-blue-500/10', border: 'focus-within:border-blue-500 focus-within:ring-blue-500/20' },
+  { name: 'Graphics & Design', icon: PenTool, color: 'text-pink-500', bgHover: 'hover:bg-pink-50 dark:hover:bg-pink-500/10', border: 'focus-within:border-pink-500 focus-within:ring-pink-500/20' },
+  { name: 'Video & Animation', icon: Video, color: 'text-purple-500', bgHover: 'hover:bg-purple-50 dark:hover:bg-purple-500/10', border: 'focus-within:border-purple-500 focus-within:ring-purple-500/20' },
+  { name: 'Writing & Translation', icon: Pen, color: 'text-orange-500', bgHover: 'hover:bg-orange-50 dark:hover:bg-orange-500/10', border: 'focus-within:border-orange-500 focus-within:ring-orange-500/20' },
+  { name: 'Music & Audio', icon: Music, color: 'text-teal-500', bgHover: 'hover:bg-teal-50 dark:hover:bg-teal-500/10', border: 'focus-within:border-teal-500 focus-within:ring-teal-500/20' },
+  { name: 'Other', icon: MoreHorizontal, color: 'text-gray-500', bgHover: 'hover:bg-gray-100 dark:hover:bg-gray-700', border: 'focus-within:border-gray-500 focus-within:ring-gray-500/20' },
+];
+
+const CreateJob = () => {
+  const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    budget: '',
+    currency: 'USD',
+    deliveryTime: '',
+    category: categories[0],
+    skills: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (user?.role !== 'client') {
+      toast.error('Only clients can post jobs.');
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const payload = {
+        ...formData,
+        category: formData.category.name,
+        skills: formData.skills.split(',').map(skill => skill.trim()).filter(Boolean)
+      };
+      await api.post('/jobs', payload);
+      toast.success('Job posted successfully!');
+      navigate('/jobs');
+    } catch (error) {
+      toast.error(error.response?.data?.error || 'Failed to post job');
+      setIsSubmitting(false);
+    }
+  };
+
+  const currentCategory = formData.category;
+
+  return (
+    <div className="min-h-screen py-20 pb-40 bg-[#fafafa] dark:bg-[#0f1115] relative font-sans">
+      {/* Decorative gradient orbs mapped to the selected category color */}
+      <div className={`absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b opacity-20 dark:opacity-10 pointer-events-none transition-colors duration-1000 ${currentCategory.color.replace('text-', 'from-').replace('-500', '-400')} to-transparent`}></div>
+      <div className={`absolute top-32 -left-32 w-96 h-96 rounded-full blur-[100px] opacity-20 pointer-events-none transition-colors duration-1000 ${currentCategory.color.replace('text-', 'bg-')}`}></div>
+      <div className={`absolute top-64 -right-32 w-96 h-96 rounded-full blur-[100px] opacity-20 pointer-events-none transition-colors duration-1000 ${currentCategory.color.replace('text-', 'bg-')}`}></div>
+
+      <div className="max-w-4xl mx-auto px-4 relative z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          className="bg-gradient-to-br from-white via-gray-50 to-white dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 backdrop-blur-2xl rounded-3xl shadow-2xl border border-gradient-to-r from-white/80 to-white/40 dark:from-gray-800/80 dark:to-gray-800/40 p-8 md:p-14 relative overflow-hidden"
+        >
+          {/* Decorative corner gradient */}
+          <div className={`absolute -top-40 -right-40 w-80 h-80 rounded-full opacity-5 pointer-events-none ${colorMap[formData.category.color].accent}`}></div>
+          <div className={`absolute -bottom-40 -left-40 w-80 h-80 rounded-full opacity-5 pointer-events-none ${colorMap[formData.category.color].accent}`}></div>
+          
+          <div className="flex flex-col items-center text-center mb-12 relative z-10">
+            <motion.div 
+              whileHover={{ scale: 1.05, rotate: 5 }}
+              className={`w-20 h-20 rounded-3xl flex items-center justify-center shadow-2xl mb-6 transition-all duration-500 ${formData.category.color.replace('text-', 'bg-')} bg-opacity-20 text-current ring-2 ${formData.category.color.replace('text-', 'ring-').replace('-500', '-400')}`}
+            >
+              <formData.category.icon size={40} className={formData.category.color} strokeWidth={1.5} />
+            </motion.div>
+            <h1 className="text-5xl md:text-6xl font-black text-gray-900 dark:text-white tracking-tight mb-3 bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
+              Post a Job
+            </h1>
+            <p className="text-lg text-gray-600 dark:text-gray-300 font-medium max-w-lg">
+              Describe your project, set your budget, and connect with top-tier freelancers instantly.
+            </p>
+          </div>
+          
+          <form onSubmit={handleSubmit} className="space-y-8 relative z-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Title */}
+              <div className="col-span-1 md:col-span-2 group">
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 ml-1">Job Title</label>
+                <div className={`relative flex items-center rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-800/50 border-2 border-transparent transition-all duration-300 ${formData.category.border} group-focus-within:shadow-lg`}>
+                  <div className="pl-5 flex items-center pointer-events-none">
+                    <Type size={20} className="text-gray-400 group-focus-within:text-gray-700 dark:group-focus-within:text-gray-300 transition-colors" />
+                  </div>
+                  <input 
+                    type="text" name="title" value={formData.title} onChange={handleChange} required
+                    placeholder="e.g., E-commerce Website Development"
+                    className="w-full bg-transparent pl-4 pr-5 py-4 text-gray-900 dark:text-white placeholder-gray-400 outline-none font-medium text-lg"
+                  />
+                </div>
+              </div>
+
+              {/* Category Dropdown (Custom) */}
+              <div className="col-span-1 md:col-span-2 relative group" ref={dropdownRef}>
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 ml-1">Category</label>
+                <div 
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className={`relative flex items-center justify-between rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-800/50 border-2 border-transparent cursor-pointer transition-all duration-300 py-4 px-5 hover:shadow-lg ${isDropdownOpen ? formData.category.border.split(' ')[0].replace('focus-within:', '') + ' shadow-lg' : ''}`}
+                >
+                  <div className="flex items-center gap-3">
+                    <formData.category.icon size={22} className={formData.category.color} />
+                    <span className="font-bold text-gray-900 dark:text-white text-lg">{formData.category.name}</span>
+                  </div>
+                  <motion.div animate={{ rotate: isDropdownOpen ? 180 : 0 }} className="text-gray-400">
+                    <ChevronDown size={20} />
+                  </motion.div>
+                </div>
+
+                <AnimatePresence>
+                  {isDropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10, scaleY: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scaleY: 1 }}
+                      exit={{ opacity: 0, y: -10, scaleY: 0.95 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute z-50 w-full mt-2 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl overflow-hidden transform origin-top"
+                    >
+                      <div className="p-2 space-y-1">
+                        {categories.map((cat, idx) => {
+                          const Icon = cat.icon;
+                          const isSelected = formData.category.name === cat.name;
+                          return (
+                            <div 
+                              key={idx}
+                              onClick={() => {
+                                setFormData({ ...formData, category: cat });
+                                setIsDropdownOpen(false);
+                              }}
+                              className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-200 ${cat.bgHover} ${isSelected ? `bg-gradient-to-r ${colorMap[cat.color].lightGradient} ring-2 ${cat.color.replace('text-', 'ring-').replace('-500', '-400')}` : ''}`}
+                            >
+                              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${cat.color.replace('text-', 'bg-')} bg-opacity-20 dark:bg-opacity-30`}>
+                                <Icon size={20} className={cat.color} />
+                              </div>
+                              <span className={`font-semibold ${isSelected ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400'}`}>
+                                {cat.name}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Description */}
+              <div className="col-span-1 md:col-span-2 group">
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 ml-1">Comprehensive Description</label>
+                <div className={`relative flex items-start rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-800/50 border-2 border-transparent transition-all duration-300 ${formData.category.border} group-focus-within:shadow-lg`}>
+                  <div className="pl-5 pt-5 flex items-center pointer-events-none">
+                    <AlignLeft size={20} className="text-gray-400 group-focus-within:text-gray-700 dark:group-focus-within:text-gray-300 transition-colors" />
+                  </div>
+                  <textarea 
+                    name="description" value={formData.description} onChange={handleChange} required rows={5}
+                    placeholder="Provide a detailed brief of what you need accomplished..."
+                    className="w-full bg-transparent pl-4 pr-5 py-5 text-gray-900 dark:text-white placeholder-gray-400 outline-none resize-none font-medium text-lg leading-relaxed"
+                  ></textarea>
+                </div>
+              </div>
+
+              {/* Skills */}
+              <div className="col-span-1 md:col-span-2 group">
+                <div className="flex justify-between items-end mb-2 ml-1 mt-2">
+                   <label className="block text-sm font-bold text-gray-700 dark:text-gray-300">Required Skills</label>
+                   <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Comma Separated</span>
+                </div>
+                <div className={`relative flex items-center rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-800/50 border-2 border-transparent transition-all duration-300 ${formData.category.border} group-focus-within:shadow-lg`}>
+                  <div className="pl-5 flex items-center pointer-events-none">
+                    <Tags size={20} className="text-gray-400 group-focus-within:text-gray-700 dark:group-focus-within:text-gray-300 transition-colors" />
+                  </div>
+                  <input 
+                    type="text" name="skills" value={formData.skills} onChange={handleChange}
+                    placeholder="e.g., React, Node.js, Tailwind CSS"
+                    className="w-full bg-transparent pl-4 pr-5 py-4 text-gray-900 dark:text-white placeholder-gray-400 outline-none font-medium text-lg"
+                  />
+                </div>
+              </div>
+
+              {/* Budget */}
+              <div className="col-span-1 group">
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 ml-1">Estimated Budget</label>
+                <div className={`relative flex items-center rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-800/50 border-2 border-transparent transition-all duration-300 ${formData.category.border} overflow-hidden group-focus-within:shadow-lg`}>
+                  <div className="pl-5 flex items-center pointer-events-none text-xl font-bold">
+                    <span className={`${formData.category.color} transition-colors`}>{currencySymbols[formData.currency]}</span>
+                  </div>
+                  <input 
+                    type="number" name="budget" value={formData.budget} onChange={handleChange} required min="5"
+                    placeholder="0.00"
+                    className="w-full bg-transparent pl-3 pr-2 py-4 text-gray-900 dark:text-white placeholder-gray-400 outline-none font-bold text-xl"
+                  />
+                  <select 
+                    name="currency" 
+                    value={formData.currency} 
+                    onChange={handleChange}
+                    className="bg-transparent border-l border-gray-200 dark:border-gray-600 py-4 pl-3 pr-5 text-gray-700 dark:text-gray-300 font-bold outline-none cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    <option value="USD">$ USD</option>
+                    <option value="INR">₹ INR</option>
+                  </select>
+                </div>
+              </div>
+              
+              {/* Delivery Time */}
+              <div className="col-span-1 group">
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 ml-1">Delivery Timeline</label>
+                <div className={`relative flex items-center rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-800/50 border-2 border-transparent transition-all duration-300 ${formData.category.border} group-focus-within:shadow-lg`}>
+                  <div className="pl-5 flex items-center pointer-events-none">
+                    <Clock size={20} className="text-gray-400 group-focus-within:text-gray-700 dark:group-focus-within:text-gray-300 transition-colors" />
+                  </div>
+                  <input 
+                    type="text" name="deliveryTime" value={formData.deliveryTime} onChange={handleChange} required
+                    placeholder="e.g., 7 Days"
+                    className="w-full bg-transparent pl-4 pr-5 py-4 text-gray-900 dark:text-white placeholder-gray-400 outline-none font-bold text-xl"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-8">
+              <motion.button 
+                type="submit" 
+                disabled={isSubmitting}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className={`w-full relative overflow-hidden text-white font-black text-lg py-5 rounded-2xl shadow-2xl transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed group bg-gradient-to-r ${colorMap[formData.category.color].gradient} ${colorMap[formData.category.color].shadow} hover:shadow-2xl`}
+              >
+                <span className="absolute inset-0 w-full h-full bg-white/20 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></span>
+                <span className="relative z-10 flex items-center justify-center gap-3">
+                  {isSubmitting ? (
+                    <svg className="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  ) : (
+                    <>
+                      Publish Job Posting <Send size={22} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                    </>
+                  )}
+                </span>
+              </motion.button>
+            </div>
+          </form>
+        </motion.div>
+      </div>
+    </div>
+  );
+};
+
+export default CreateJob;
