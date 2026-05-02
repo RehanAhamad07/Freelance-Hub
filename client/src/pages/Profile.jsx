@@ -115,222 +115,327 @@ const Profile = () => {
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   if (!profile) return null;
 
-  const isFreelancer = profile.role === 'freelancer';
+  const isFreelancer = true; // All users can be freelancers now
   const isOwnProfile = user && ((user.id || user._id) === profile._id);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-12 mt-8">
-      {/* Hero Section */}
-      <motion.div 
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-xl border border-gray-100 dark:border-gray-700 relative overflow-hidden mb-8"
-      >
-        <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-r from-primary/20 to-primary/5 dark:from-primary/10 dark:to-transparent"></div>
-        <div className="relative flex flex-col md:flex-row gap-8 items-start md:items-center">
-          <div className="w-32 h-32 rounded-full border-4 border-white dark:border-gray-800 shadow-xl overflow-hidden bg-gray-100 dark:bg-gray-700 mx-auto md:mx-0 flex-shrink-0 z-10">
-            {profile.profilePicture ? (
-              <img src={profile.profilePicture} alt={profile.name} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-4xl font-black text-gray-500">
-                {profile.name.charAt(0)}
-              </div>
-            )}
-          </div>
-          
-          <div className="flex-1 text-center md:text-left z-10">
-            <h1 className="text-3xl font-black text-gray-900 dark:text-white flex items-center justify-center md:justify-start gap-3">
-              {profile.name} 
-              {isFreelancer && <span className="text-xs bg-primary/10 text-primary px-3 py-1 rounded-full uppercase tracking-widest font-bold">Freelancer</span>}
-            </h1>
-            {profile.country && (
-              <div className="flex items-center justify-center md:justify-start gap-1 text-gray-500 mt-2">
-                <MapPin size={16} /> <span>{profile.country}</span>
-              </div>
-            )}
-            
-            {isFreelancer && (
-              <div className="flex items-center justify-center md:justify-start gap-4 mt-4">
-                <div className="flex items-center gap-1 text-yellow-500 font-bold bg-yellow-50 dark:bg-yellow-900/10 px-3 py-1 rounded-lg">
-                  <Star size={16} className="fill-yellow-500" />
-                  <span>{profile.rating.toFixed(1)}</span>
+    <div className="w-full min-h-screen bg-gray-50 dark:bg-gray-950 pt-20 pb-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        {/* Hero Section with Profile Header */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-800 p-8 sm:p-12 mb-12 overflow-hidden relative"
+        >
+          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl"></div>
+          <div className="relative">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-8">
+              {/* Profile Picture */}
+              <div className="relative flex-shrink-0">
+                <div className="w-40 h-40 rounded-2xl shadow-xl overflow-hidden border-4 border-white dark:border-gray-700 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                  {profile.profilePicture ? (
+                    <img src={profile.profilePicture} alt={profile.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="text-6xl font-black text-gray-400">{profile.name.charAt(0)}</div>
+                  )}
                 </div>
-                <div className="flex items-center gap-1 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-lg font-bold">
-                  <Briefcase size={16} />
-                  <span>{profile.completedJobs} Jobs Done</span>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="w-full md:w-auto flex flex-col sm:flex-row gap-3 z-10">
-            {isOwnProfile ? (
-              <button 
-                onClick={() => setIsEditing(true)}
-                className="flex items-center justify-center gap-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-900 dark:text-white font-bold px-6 py-3 rounded-xl transition shadow-sm border border-gray-200 dark:border-gray-600"
-              >
-                <Edit2 size={18} /> Edit Profile
-              </button>
-            ) : (
-              <>
-                <a 
-                  href={`https://mail.google.com/mail/?view=cm&fs=1&to=${profile.email}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-900 dark:text-white font-bold px-6 py-3 rounded-xl transition"
-                >
-                  <Mail size={18} /> Email
-                </a>
-                <button 
-                  onClick={handleMessageClick}
-                  className="flex items-center justify-center gap-2 bg-primary hover:bg-green-600 text-white font-bold px-6 py-3 rounded-xl transition shadow-lg shadow-primary/30"
-                >
-                  <MessageSquare size={18} /> Message
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      </motion.div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {/* Left Column - Details */}
-        <div className="space-y-8">
-          <motion.div 
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.1 }}
-            className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700"
-          >
-            <h3 className="font-black text-gray-900 dark:text-white mb-6 uppercase tracking-wider text-sm flex items-center gap-2">
-              Information
-            </h3>
-            <ul className="space-y-4">
-              {profile.phone && (
-                <li className="flex items-center gap-3 text-gray-600 dark:text-gray-300">
-                  <Phone size={18} className="text-gray-400" />
-                  <span className="font-medium">{profile.phone}</span>
-                </li>
-              )}
-              {profile.education?.length > 0 && (
-                <li className="flex items-start gap-3 text-gray-600 dark:text-gray-300">
-                  <GraduationCap size={18} className="text-gray-400 mt-1" />
-                  <div className="flex flex-col gap-1">
-                    {profile.education.map((edu, i) => (
-                      <span key={i} className="font-medium">{edu}</span>
-                    ))}
+                {isFreelancer && (
+                  <div className="absolute -bottom-2 -right-2 bg-green-500 w-12 h-12 rounded-full flex items-center justify-center shadow-lg border-4 border-white dark:border-gray-900" title="Verified">
+                    <Star size={24} className="text-white fill-white" />
                   </div>
-                </li>
-              )}
-              {!profile.phone && !profile.education?.length && (
-                <p className="text-gray-400 italic font-medium text-sm">No additional information provided.</p>
-              )}
-            </ul>
-          </motion.div>
-
-          <motion.div 
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700"
-          >
-            <h3 className="font-black text-gray-900 dark:text-white mb-6 uppercase tracking-wider text-sm">Skills</h3>
-            {profile.skills?.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {profile.skills.map((skill, i) => (
-                  <span key={i} className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-xl text-sm font-bold">
-                    {skill}
-                  </span>
-                ))}
+                )}
               </div>
-            ) : (
-              <p className="text-gray-400 italic font-medium">No skills listed</p>
-            )}
-          </motion.div>
-          
-          <motion.div 
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700"
-          >
-            <h3 className="font-black text-gray-900 dark:text-white mb-6 uppercase tracking-wider text-sm">Languages</h3>
-            {profile.languages?.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {profile.languages.map((lang, i) => (
-                  <span key={i} className="bg-blue-50 dark:bg-blue-900/10 text-blue-600 dark:text-blue-400 px-4 py-2 rounded-xl text-sm font-bold">
-                    {lang}
-                  </span>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-400 italic font-medium">Not specified</p>
-            )}
-          </motion.div>
-        </div>
 
-        {/* Right Column - Main Content */}
-        <div className="md:col-span-2 space-y-8">
-          <motion.div 
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-sm border border-gray-100 dark:border-gray-700"
-          >
-            <h3 className="font-black text-gray-900 dark:text-white mb-6 uppercase tracking-wider text-sm">About {profile.name}</h3>
-            {profile.bio ? (
-              <p className="text-gray-600 dark:text-gray-300 leading-relaxed font-medium whitespace-pre-wrap">{profile.bio}</p>
-            ) : (
-              <p className="text-gray-400 italic font-medium">This user hasn't written a bio yet.</p>
-            )}
-          </motion.div>
+              {/* Profile Info */}
+              <div className="flex-1">
+                <div className="flex flex-col gap-3 mb-6">
+                  <div className="flex items-center gap-3">
+                    <h1 className="text-4xl font-bold text-gray-900 dark:text-white">{profile.name}</h1>
+                    {isFreelancer && (
+                      <span className="px-4 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-xs font-bold uppercase tracking-wider">
+                        ✓ Verified
+                      </span>
+                    )}
+                  </div>
+                  {profile.country && (
+                    <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 text-lg">
+                      <MapPin size={20} className="text-blue-600" />
+                      <span className="font-semibold">{profile.country}</span>
+                    </div>
+                  )}
+                </div>
 
-          {isFreelancer && (
-            <motion.div 
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-sm border border-gray-100 dark:border-gray-700"
-            >
-              <h3 className="font-black text-gray-900 dark:text-white mb-6 uppercase tracking-wider text-sm flex items-center justify-between">
-                <span>Active Gigs</span>
-                <span className="bg-gray-100 dark:bg-gray-700 text-gray-500 px-3 py-1 rounded-lg">{services.length}</span>
-              </h3>
-              
-              {services.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {services.map(gig => (
-                    <Link key={gig._id} to={`/service/${gig._id}`} className="group block h-full">
-                      <div className="bg-gray-50 dark:bg-gray-700/50 rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-700 transition hover:border-primary h-full flex flex-col shadow-sm hover:shadow-md">
-                        <div className="aspect-video w-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center relative overflow-hidden">
-                          {gig.image ? (
-                            <img src={gig.image} alt={gig.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
-                          ) : (
-                            <span className="text-gray-400 font-black uppercase tracking-widest text-xs">{gig.category}</span>
-                          )}
-                        </div>
-                        <div className="p-4 flex-1 flex flex-col justify-between">
-                          <h4 className="font-bold text-gray-900 dark:text-white mb-2 line-clamp-2 leading-tight group-hover:text-primary transition">{gig.title}</h4>
-                          <div className="flex items-center justify-between mt-4">
-                            <span className="font-black text-lg text-gray-900 dark:text-white">${gig.price}</span>
-                            <div className="w-8 h-8 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition shadow-sm">
-                              <ChevronRight size={16} />
-                            </div>
-                          </div>
-                        </div>
+                {/* Stats for Freelancers */}
+                {isFreelancer && (
+                  <div className="grid grid-cols-3 gap-4 mb-6">
+                    <div className="bg-white dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                      <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{(profile.rating || 0).toFixed(1)}</div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400 font-semibold flex items-center gap-1">
+                        <Star size={14} className="fill-yellow-400 text-yellow-400" /> Rating
                       </div>
-                    </Link>
+                    </div>
+                    <div className="bg-white dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                      <div className="text-2xl font-bold text-green-600 dark:text-green-400">{profile.completedJobs || 0}</div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400 font-semibold flex items-center gap-1">
+                        <Briefcase size={14} /> Jobs Done
+                      </div>
+                    </div>
+                    <div className="bg-white dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                      <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{services.length}</div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400 font-semibold">Active Gigs</div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex flex-wrap gap-3">
+                  {isOwnProfile ? (
+                    <motion.button 
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setIsEditing(true)}
+                      className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-lg transition-all shadow-md hover:shadow-lg"
+                    >
+                      <Edit2 size={18} /> Edit Profile
+                    </motion.button>
+                  ) : (
+                    <>
+                      <motion.a 
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        href={`https://mail.google.com/mail/?view=cm&fs=1&to=${profile.email}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-900 dark:text-white font-bold px-6 py-3 rounded-lg transition-all"
+                      >
+                        <Mail size={18} /> Email
+                      </motion.a>
+                      <motion.button 
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={handleMessageClick}
+                        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-lg transition-all shadow-md hover:shadow-lg"
+                      >
+                        <MessageSquare size={18} /> Message
+                      </motion.button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+          
+          {/* Left Sidebar */}
+          <div className="space-y-6">
+            
+            {/* Information Card */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-md border border-gray-200 dark:border-gray-800"
+            >
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                <Phone size={20} className="text-blue-600" />
+                Contact Information
+              </h3>
+              <div className="space-y-4">
+                {profile.phone && (
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                    <Phone size={18} className="text-blue-600 flex-shrink-0" />
+                    <span className="font-semibold text-gray-900 dark:text-white">{profile.phone}</span>
+                  </div>
+                )}
+                {profile.email && (
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                    <Mail size={18} className="text-blue-600 flex-shrink-0" />
+                    <span className="font-semibold text-gray-900 dark:text-white text-sm truncate">{profile.email}</span>
+                  </div>
+                )}
+                {!profile.phone && !profile.email && (
+                  <p className="text-gray-500 text-sm italic">No contact info provided</p>
+                )}
+              </div>
+            </motion.div>
+
+            {/* Education Card */}
+            {profile.education?.length > 0 && (
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-md border border-gray-200 dark:border-gray-800"
+              >
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                  <GraduationCap size={20} className="text-purple-600" />
+                  Education
+                </h3>
+                <div className="space-y-3">
+                  {profile.education.map((edu, i) => (
+                    <div key={i} className="flex items-start gap-3 p-3 bg-purple-50 dark:bg-purple-900/10 rounded-lg border border-purple-200 dark:border-purple-900/30">
+                      <GraduationCap size={18} className="text-purple-600 flex-shrink-0 mt-1" />
+                      <span className="font-semibold text-gray-900 dark:text-white">{edu}</span>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
+            {/* Skills Card */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-md border border-gray-200 dark:border-gray-800"
+            >
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                <Briefcase size={20} className="text-blue-600" />
+                Skills
+              </h3>
+              {profile.skills?.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {profile.skills.map((skill, i) => (
+                    <span 
+                      key={i} 
+                      className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-4 py-2 rounded-lg text-sm font-bold border border-blue-200 dark:border-blue-800"
+                    >
+                      {skill}
+                    </span>
                   ))}
                 </div>
               ) : (
-                <div className="w-full h-40 bg-gray-50 dark:bg-gray-700/30 rounded-2xl flex items-center justify-center flex-col text-gray-400 font-medium">
-                  <Briefcase className="mb-2 opacity-50" size={32}/>
-                  <p>No active gigs visible right now.</p>
+                <p className="text-gray-500 text-sm italic">No skills listed yet</p>
+              )}
+            </motion.div>
+
+            {/* Languages Card */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-md border border-gray-200 dark:border-gray-800"
+            >
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Languages</h3>
+              {profile.languages?.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {profile.languages.map((lang, i) => (
+                    <span 
+                      key={i} 
+                      className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-4 py-2 rounded-lg text-sm font-bold border border-green-200 dark:border-green-800"
+                    >
+                      {lang}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-sm italic">Not specified</p>
+              )}
+            </motion.div>
+          </div>
+
+          {/* Right Content */}
+          <div className="lg:col-span-2 space-y-6">
+            
+            {/* About Section */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-md border border-gray-200 dark:border-gray-800"
+            >
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">About</h3>
+              {profile.bio ? (
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-lg whitespace-pre-wrap">{profile.bio}</p>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
+                    <Mail size={32} className="text-gray-400" />
+                  </div>
+                  <p className="text-gray-500 dark:text-gray-400 font-medium">This user hasn't written a bio yet</p>
                 </div>
               )}
             </motion.div>
-          )}
 
+            {/* Active Gigs Section */}
+            {isFreelancer && (
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-md border border-gray-200 dark:border-gray-800"
+              >
+                <div className="flex items-center justify-between mb-8">
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Active Gigs</h3>
+                  <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-4 py-2 rounded-full font-bold text-sm">
+                    {services.length} {services.length === 1 ? 'Gig' : 'Gigs'}
+                  </span>
+                </div>
+                
+                {services.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    {services.map(gig => (
+                      <motion.div
+                        key={gig._id}
+                        whileHover={{ y: -5 }}
+                        className="group"
+                      >
+                        <Link to={`/service/${gig._id}`} className="block h-full">
+                          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:border-blue-400 dark:hover:border-blue-500 transition-all shadow-sm hover:shadow-lg h-full flex flex-col">
+                            
+                            {/* Gig Image */}
+                            <div className="aspect-video w-full bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center relative overflow-hidden">
+                              {gig.image ? (
+                                <img src={gig.image} alt={gig.title} className="w-full h-full object-cover group-hover:scale-110 transition duration-500" />
+                              ) : (
+                                <div className="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+                                  <Briefcase size={32} className="mb-2 opacity-50" />
+                                  <span className="text-xs font-bold uppercase tracking-widest">{gig.category}</span>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Gig Info */}
+                            <div className="p-5 flex-1 flex flex-col justify-between">
+                              <div>
+                                <h4 className="font-bold text-gray-900 dark:text-white mb-3 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition">
+                                  {gig.title}
+                                </h4>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-4">{gig.description}</p>
+                              </div>
+
+                              {/* Footer */}
+                              <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
+                                <div>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Starting at</p>
+                                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">${gig.price}</p>
+                                </div>
+                                <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white dark:group-hover:bg-blue-600 transition">
+                                  <ChevronRight size={20} />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </Link>
+                      </motion.div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-16">
+                    <div className="w-20 h-20 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
+                      <Briefcase size={40} className="text-gray-400" />
+                    </div>
+                    <p className="text-gray-600 dark:text-gray-400 font-medium text-center">No active gigs yet</p>
+                    <p className="text-gray-500 dark:text-gray-500 text-sm mt-2">Start creating gigs to showcase your services</p>
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </div>
         </div>
       </div>
 

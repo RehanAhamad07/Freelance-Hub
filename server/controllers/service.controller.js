@@ -2,7 +2,7 @@ const Service = require('../models/Service');
 
 const createService = async (req, res) => {
   try {
-    if (req.user.role !== 'freelancer') {
+    if (!req.user.roles.includes('freelancer')) {
       return res.status(403).json({ error: 'Only freelancers can create services' });
     }
 
@@ -20,15 +20,36 @@ const createService = async (req, res) => {
 
 const getServices = async (req, res) => {
   try {
-    const { category, search, freelancer } = req.query;
+    const { category, search, freelancer, minPrice, maxPrice, minRating } = req.query;
     let query = {};
+    
     if (category) query.category = category;
     if (freelancer) query.freelancer = freelancer;
     if (search) query.title = { $regex: search, $options: 'i' };
+    
+    // Price range filtering - ensure proper type conversion
+    if (minPrice || maxPrice) {
+      query.price = {};
+      if (minPrice) {
+        const min = parseFloat(minPrice);
+        if (!isNaN(min)) query.price.$gte = min;
+      }
+      if (maxPrice) {
+        const max = parseFloat(maxPrice);
+        if (!isNaN(max)) query.price.$lte = max;
+      }
+    }
+    
+    // Rating filtering
+    if (minRating) {
+      const rating = parseFloat(minRating);
+      if (!isNaN(rating)) query.rating = { $gte: rating };
+    }
 
-    const services = await Service.find(query).populate('freelancer', 'name profilePicture rating');
+    const services = await Service.find(query).populate('freelancer', 'name profilePicture rating').lean();
     res.json(services);
   } catch (error) {
+    console.error('Service fetch error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };

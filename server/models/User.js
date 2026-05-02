@@ -14,10 +14,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  role: {
-    type: String,
-    enum: ['client', 'freelancer'],
-    required: true,
+  roles: {
+    type: [String],
+    enum: ['client', 'freelancer', 'admin'],
+    default: ['client', 'freelancer'],
   },
   profilePicture: {
     type: String,
@@ -58,6 +58,35 @@ const userSchema = new mongoose.Schema({
   country: {
     type: String,
     default: '',
+  },
+  savedServices: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Service'
+  }],
+  savedJobs: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Job'
+  }],
+  walletBalance: {
+    type: Number,
+    default: 5000, // Default to $5000 for testing purposes
+  },
+  isBanned: {
+    type: Boolean,
+    default: false,
+  },
+  bannedReason: {
+    type: String,
+    default: '',
+  },
+  bannedAt: {
+    type: Date,
+  },
+  resetPasswordOtp: {
+    type: String,
+  },
+  resetPasswordExpires: {
+    type: Date,
   }
 }, { timestamps: true });
 

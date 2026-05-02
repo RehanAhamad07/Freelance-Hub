@@ -3,7 +3,10 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const http = require('http');
+const path = require('path');
 const { Server } = require('socket.io');
+const rateLimit = require('express-rate-limit');
+const { sendOfflineMessageEmail } = require('./utils/email');
 
 const authRoutes = require('./routes/auth.routes');
 const serviceRoutes = require('./routes/service.routes');
@@ -11,11 +14,17 @@ const orderRoutes = require('./routes/order.routes');
 const reviewRoutes = require('./routes/review.routes');
 const chatRoutes = require('./routes/chat.routes');
 const jobRoutes = require('./routes/job.routes');
+const proposalRoutes = require('./routes/proposal.routes');
+const notificationRoutes = require('./routes/notification.routes');
+const adminRoutes = require('./routes/admin.routes');
 
 const Conversation = require('./models/Conversation');
 const Message = require('./models/Message');
 
 const User = require('./models/User');
+
+// Initialize Cron Jobs
+require('./cron/autoComplete');
 
 const app = express();
 const server = http.createServer(app);
@@ -26,10 +35,25 @@ const io = new Server(server, {
   }
 });
 
+// Global Rate Limiter
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 1000, // Limit each IP to 1000 requests per windowMs
+  message: { error: 'Too many requests from this IP' }
+});
+
 // Middleware
+app.use(globalLimiter);
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Attach Socket.io to req for global broadcasting
+app.use((req, res, next) => {
+  req.io = io;
+  next();
+});
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -38,6 +62,9 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/jobs', jobRoutes);
+app.use('/api/proposals', proposalRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Socket.io for Real-time Chat
 io.on('connection', (socket) => {
@@ -75,16 +102,29 @@ io.on('connection', (socket) => {
       // Get Sender details
       const senderUser = await User.findById(sender).select('name');
 
-      // Emit to receiver's room
-      io.to(receiver).emit('receiveMessage', {
-        conversationId,
-        sender,
-        senderName: senderUser?.name || 'Someone',
-        text,
-        image,
-        audio,
-        createdAt: newMessage.createdAt
-      });
+      // Check if receiver is online
+      const receiverRoom = io.sockets.adapter.rooms.get(receiver);
+      const isOnline = receiverRoom && receiverRoom.size > 0;
+
+      if (isOnline) {
+        // Emit to receiver's room
+        io.to(receiver).emit('receiveMessage', {
+          conversationId,
+          sender,
+          senderName: senderUser?.name || 'Someone',
+          text,
+          image,
+          audio,
+          createdAt: newMessage.createdAt
+        });
+      } else {
+        // Receiver is offline, send email notification
+        const receiverUser = await User.findById(receiver).select('email');
+        if (receiverUser && receiverUser.email) {
+          sendOfflineMessageEmail(receiverUser.email, senderUser?.name || 'Someone', previewText)
+            .catch(err => console.error('Failed to send offline message email:', err));
+        }
+      }
     } catch (error) {
       console.error(error);
     }
@@ -95,7 +135,7 @@ io.on('connection', (socket) => {
   });
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5002;
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {

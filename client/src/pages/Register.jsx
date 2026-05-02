@@ -2,23 +2,32 @@ import React, { useState, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { GoogleLogin } from '@react-oauth/google';
 
 const Register = () => {
-  const { register } = useContext(AuthContext);
+  const { register, googleLogin } = useContext(AuthContext);
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    password: '',
-    role: 'client'
+    password: ''
   });
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const success = await register(formData.name, formData.email, formData.password, formData.role);
+    const success = await register(formData.name, formData.email, formData.password);
     if (success) navigate('/dashboard');
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    const success = await googleLogin(credentialResponse.credential);
+    if (success) navigate('/dashboard');
+  };
+
+  const handleGoogleError = () => {
+    console.error('Google Login Failed');
   };
 
   return (
@@ -34,23 +43,6 @@ const Register = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="flex bg-gray-100 dark:bg-gray-700 p-1 rounded-xl mb-6">
-            <button
-              type="button"
-              className={`flex-1 py-2 rounded-lg font-medium transition-colors text-sm ${formData.role === 'client' ? 'bg-white dark:bg-gray-600 shadow text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
-              onClick={() => setFormData({ ...formData, role: 'client' })}
-            >
-              I want to Hire
-            </button>
-            <button
-              type="button"
-              className={`flex-1 py-2 rounded-lg font-medium transition-colors text-sm ${formData.role === 'freelancer' ? 'bg-white dark:bg-gray-600 shadow text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
-              onClick={() => setFormData({ ...formData, role: 'freelancer' })}
-            >
-              I want to Work
-            </button>
-          </div>
-
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name</label>
             <input
@@ -96,6 +88,20 @@ const Register = () => {
             Create My Account
           </button>
         </form>
+
+        <div className="mt-6 flex items-center justify-between">
+          <span className="w-1/5 border-b dark:border-gray-600 lg:w-1/4"></span>
+          <span className="text-xs text-center text-gray-500 uppercase dark:text-gray-400">or sign up with</span>
+          <span className="w-1/5 border-b dark:border-gray-600 lg:w-1/4"></span>
+        </div>
+
+        <div className="mt-6 flex justify-center">
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={handleGoogleError}
+            useOneTap
+          />
+        </div>
 
         <p className="text-center mt-6 text-gray-600 dark:text-gray-400">
           Already have an account? <Link to="/login" className="text-primary hover:underline font-medium">Log in</Link>

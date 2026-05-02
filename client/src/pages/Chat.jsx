@@ -226,232 +226,294 @@ const Chat = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto h-[calc(100vh-100px)] flex bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl rounded-[2rem] shadow-2xl border border-gray-100 dark:border-gray-800 mt-8 overflow-hidden relative">
-      
-      {/* Background Decorators */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-[100px] pointer-events-none"></div>
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-500/5 rounded-full blur-[100px] pointer-events-none"></div>
-
-      {/* Sidebar */}
-      <div className="w-1/3 border-r border-gray-100 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50 flex flex-col z-10">
-        <div className="p-6 border-b border-gray-100 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50 backdrop-blur-md sticky top-0">
-          <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Messages</h2>
-          <div className="mt-4 relative">
-            <input 
-              type="text" 
-              placeholder="Search conversations..." 
-              className="w-full bg-gray-100/80 dark:bg-gray-800/80 border-none rounded-2xl py-3 px-4 text-sm outline-none focus:ring-2 focus:ring-primary/20 text-gray-900 dark:text-white transition-all shadow-sm inset-1"
-            />
-          </div>
-        </div>
-        <div className="overflow-y-auto h-full px-3 py-4 space-y-2">
-          {conversations.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-gray-400 opacity-60">
-              <UserIcon size={48} className="mb-4" />
-              <p>No conversations yet.</p>
+    <div className="w-full min-h-screen bg-gray-50 dark:bg-gray-950 pt-20 pb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Main Chat Container */}
+        <div className="h-[calc(100vh-140px)] flex bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
+          
+          {/* Sidebar - Conversations List */}
+          <div className="w-80 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 flex flex-col">
+            
+            {/* Header */}
+            <div className="p-6 border-b border-gray-200 dark:border-gray-800 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 sticky top-0">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Messages</h1>
+              <div className="relative">
+                <input 
+                  type="text" 
+                  placeholder="Search conversations..." 
+                  className="w-full bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg py-2.5 px-4 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all"
+                />
+                <svg className="absolute right-3 top-3 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
             </div>
-          ) : (
-            conversations.map((c) => {
-              const otherUser = c.participants.find(p => String(p._id || p) !== userId);
-              const isActive = currentChat?._id === c._id;
-              return (
-                <motion.div 
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  key={c._id} 
-                  onClick={() => setCurrentChat(c)}
-                  className={`p-4 rounded-2xl cursor-pointer transition-all duration-300 ${isActive ? 'bg-primary shadow-lg shadow-primary/30' : 'hover:bg-white dark:hover:bg-gray-800 border border-transparent hover:border-gray-100 dark:hover:border-gray-700/50 hover:shadow-sm'}`}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="relative">
-                      {otherUser?.profilePicture ? (
-                        <img src={otherUser.profilePicture} alt="User" className="w-12 h-12 rounded-full object-cover shadow-sm" />
-                      ) : (
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg ${isActive ? 'bg-white/20 text-white' : 'bg-green-100 dark:bg-gray-700 text-primary'}`}>
-                          {otherUser?.name?.charAt(0) || 'U'}
+
+            {/* Conversations List */}
+            <div className="overflow-y-auto flex-1">
+              {conversations.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full px-6 py-12">
+                  <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mb-4">
+                    <UserIcon size={32} className="text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <p className="text-gray-500 dark:text-gray-400 text-center font-medium">No conversations yet</p>
+                  <p className="text-gray-400 dark:text-gray-500 text-xs text-center mt-2">Start messaging with clients or freelancers</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-100 dark:divide-gray-800">
+                  {conversations.map((c) => {
+                    const otherUser = c.participants.find(p => String(p._id || p) !== userId);
+                    const isActive = currentChat?._id === c._id;
+                    return (
+                      <motion.button
+                        whileHover={{ backgroundColor: isActive ? 'rgb(59, 130, 246)' : 'rgb(249, 250, 251)' }}
+                        key={c._id} 
+                        onClick={() => setCurrentChat(c)}
+                        className={`w-full p-4 text-left transition-colors duration-200 ${isActive ? 'bg-blue-600 dark:bg-blue-700' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="relative flex-shrink-0">
+                            {otherUser?.profilePicture ? (
+                              <img 
+                                src={otherUser.profilePicture} 
+                                alt={otherUser.name} 
+                                className="w-12 h-12 rounded-full object-cover border-2 border-gray-200 dark:border-gray-700"
+                              />
+                            ) : (
+                              <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-white text-lg ${isActive ? 'bg-blue-700' : 'bg-blue-600'}`}>
+                                {otherUser?.name?.charAt(0).toUpperCase() || 'U'}
+                              </div>
+                            )}
+                            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-900"></div>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex justify-between items-baseline gap-2 mb-1">
+                              <h4 className={`font-semibold truncate ${isActive ? 'text-white' : 'text-gray-900 dark:text-white'}`}>
+                                {otherUser?.name || 'Unknown User'}
+                              </h4>
+                              <span className={`text-xs whitespace-nowrap ${isActive ? 'text-blue-200' : 'text-gray-500 dark:text-gray-400'}`}>
+                                12:30
+                              </span>
+                            </div>
+                            <p className={`text-sm truncate ${isActive ? 'text-blue-100' : 'text-gray-600 dark:text-gray-400'}`}>
+                              {c.lastMessage || 'No messages yet'}
+                            </p>
+                          </div>
                         </div>
-                      )}
-                      <div className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 ${isActive ? 'border-primary' : 'border-white dark:border-gray-900'} bg-green-500`}></div>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-center mb-1">
-                        <h4 className={`font-bold truncate ${isActive ? 'text-white' : 'text-gray-900 dark:text-white'}`}>{otherUser?.name || 'User'}</h4>
-                        <span className={`text-xs font-semibold ${isActive ? 'text-white/80' : 'text-gray-400'}`}>12:30</span>
+                      </motion.button>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Chat Area */}
+          <div className="flex-1 flex flex-col h-full">
+            {currentChat ? (
+              <>
+                {/* Chat Header */}
+                <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 flex justify-between items-center sticky top-0 z-10 shadow-sm">
+                  <div className="flex items-center gap-4">
+                    {currentChat.participants.find(p => String(p._id || p) !== userId)?.profilePicture ? (
+                      <img 
+                        src={currentChat.participants.find(p => String(p._id || p) !== userId)?.profilePicture} 
+                        alt="Profile" 
+                        className="w-12 h-12 rounded-full object-cover border-2 border-gray-200 dark:border-gray-700"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center font-bold text-white text-lg">
+                        {currentChat.participants.find(p => String(p._id || p) !== userId)?.name?.charAt(0).toUpperCase() || 'U'}
                       </div>
-                      <p className={`text-sm truncate ${isActive ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'}`}>{c.lastMessage || 'Start the conversation...'}</p>
+                    )}
+                    <div>
+                      <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                        {currentChat.participants.find(p => String(p._id || p) !== userId)?.name || 'Unknown User'}
+                      </h2>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                        <span className="text-xs text-green-600 dark:text-green-400 font-medium">Active now</span>
+                      </div>
                     </div>
                   </div>
-                </motion.div>
-              )
-            })
-          )}
-        </div>
-      </div>
-
-      {/* Chat Box */}
-      <div className="flex-1 flex flex-col h-full relative z-10 bg-transparent">
-        {currentChat ? (
-          <>
-            {/* Chat Header */}
-            <div className="p-6 border-b border-gray-100 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50 backdrop-blur-md flex justify-between items-center z-10 sticky top-0 shadow-sm">
-               <div className="flex items-center gap-4">
-                 {currentChat.participants.find(p => String(p._id || p) !== userId)?.profilePicture ? (
-                   <img src={currentChat.participants.find(p => String(p._id || p) !== userId)?.profilePicture} alt="Profile" className="w-12 h-12 rounded-full object-cover shadow-sm border border-gray-100 dark:border-gray-700" />
-                 ) : (
-                   <div className="w-12 h-12 bg-primary/10 text-primary rounded-full flex items-center justify-center font-black text-lg">
-                     {currentChat.participants.find(p => String(p._id || p) !== userId)?.name?.charAt(0) || 'U'}
-                   </div>
-                 )}
-                 <div>
-                   <h3 className="font-bold text-lg text-gray-900 dark:text-white">
-                     {currentChat.participants.find(p => String(p._id || p) !== userId)?.name || 'Unknown User'}
-                   </h3>
-                   <div className="flex items-center gap-1.5 mt-0.5">
-                     <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                     <span className="text-xs font-medium text-green-600 dark:text-green-400">Online now</span>
-                   </div>
-                 </div>
-               </div>
-               <button className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full">
-                 <MoreVertical size={20} />
-               </button>
-            </div>
-            
-            {/* Chat Messages Container */}
-            <div className="flex-1 overflow-y-auto px-6 py-8 space-y-6 bg-gray-50/50 dark:bg-gray-900/10">
-              <AnimatePresence>
-                {messages.map((m, i) => {
-                  const isMe = m.sender === userId;
-                  const senderDetails = getUserDetails(m.sender);
-
-                  return (
-                    <motion.div 
-                      key={i} 
-                      initial={{ opacity: 0, y: 15, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                      className={`flex items-end gap-3 ${isMe ? 'justify-end' : 'justify-start'}`}
-                    >
-                      {!isMe && (
-                        <div className="flex-shrink-0 mb-1">
-                          {senderDetails?.profilePicture ? (
-                            <img src={senderDetails.profilePicture} alt="Avatar" className="w-8 h-8 rounded-full object-cover shadow-sm" />
-                          ) : (
-                            <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-600 dark:text-gray-300">
-                              {senderDetails?.name?.charAt(0) || 'U'}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      
-                      <div className={`max-w-[70%] group relative ${isMe ? 'order-1' : 'order-2'}`}>
-                        <div 
-                          className={`p-4 shadow-sm text-[15px] leading-relaxed overflow-hidden ${isMe ? 'bg-gradient-to-br from-primary to-green-500 text-white rounded-3xl rounded-br-sm' : 'bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-3xl rounded-bl-sm'}`}
-                        >
-                          {m.image && <img src={m.image} alt="Sent file" className="max-w-full rounded-2xl mb-2 cursor-pointer hover:opacity-90 transition" />}
-                          {m.audio && <CustomAudioPlayer audioSrc={m.audio} isMe={isMe} />}
-                          {m.text && <p className="leading-snug">{m.text}</p>}
-                        </div>
-                        <span className={`text-[10px] text-gray-400 font-medium absolute -bottom-5 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap ${isMe ? 'right-1' : 'left-1'}`}>
-                          {new Date(m.createdAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                      </div>
-                    </motion.div>
-                  )
-                })}
-              </AnimatePresence>
-              <div ref={scrollRef}></div>
-            </div>
-
-            {/* Input Box */}
-            <div className="p-4 md:p-6 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-t border-gray-100 dark:border-gray-800 relative">
-              {/* Emoji Picker Overlay */}
-              <AnimatePresence>
-                {showEmojiPicker && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    className="absolute bottom-[80px] left-16 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 p-4 rounded-3xl shadow-xl w-64 z-50 grid grid-cols-4 gap-3"
-                  >
-                    {COMMON_EMOJIS.map(emoji => (
-                      <button 
-                        key={emoji} 
-                        type="button"
-                        onClick={() => setNewMessage(p => p + emoji)}
-                        className="text-2xl hover:bg-gray-100 dark:hover:bg-gray-700 p-2 rounded-xl transition cursor-pointer flex items-center justify-center transform hover:scale-125 active:scale-95"
-                      >
-                        {emoji}
-                      </button>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              <form onSubmit={handleSubmit} className="flex gap-3 items-center">
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  onChange={handleImageChange} 
-                  accept="image/*" 
-                  className="hidden" 
-                />
-                <button type="button" onClick={() => fileInputRef.current?.click()} className="text-gray-400 hover:text-primary transition p-2.5 bg-gray-100 dark:bg-gray-800 rounded-full flex-shrink-0">
-                  <ImageIcon size={20} />
-                </button>
-                
-                <div className="flex-1 relative">
-                  <input 
-                    type="text" 
-                    value={newMessage} 
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    placeholder="Type your message..."
-                    className="w-full pl-5 pr-12 py-3 md:py-4 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-medium"
-                  />
-                  <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-yellow-500 transition">
-                    <Smile size={20} />
+                  <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-600 dark:text-gray-400">
+                    <MoreVertical size={20} />
                   </button>
                 </div>
                 
-                {isRecording ? (
-                  <button 
-                    type="button" 
-                    onClick={handleStopRecording} 
-                    className="bg-red-500 hover:bg-red-600 animate-pulse text-white font-bold h-12 w-12 md:h-14 md:w-14 rounded-full flex items-center justify-center transition-all flex-shrink-0"
-                  >
-                    <Square size={18} fill="currentColor" />
-                  </button>
-                ) : (
-                  <button 
-                    type="button" 
-                    onClick={handleStartRecording} 
-                    className="bg-gray-100 dark:bg-gray-800 hover:text-red-500 text-gray-500 font-bold h-12 w-12 md:h-14 md:w-14 rounded-full flex items-center justify-center transition-all flex-shrink-0"
-                  >
-                    <Mic size={20} />
-                  </button>
-                )}
+                {/* Messages Area */}
+                <div className="flex-1 overflow-y-auto px-6 py-8 bg-gray-50 dark:bg-gray-950">
+                  <div className="space-y-4 max-w-4xl">
+                    <AnimatePresence>
+                      {messages.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center h-full py-20">
+                          <div className="text-center">
+                            <div className="w-20 h-20 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                              <Send size={40} className="text-blue-600 dark:text-blue-400" />
+                            </div>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Start the conversation</h3>
+                            <p className="text-gray-500 dark:text-gray-400">Send a message to discuss your project or service</p>
+                          </div>
+                        </div>
+                      ) : (
+                        messages.map((m, i) => {
+                          const isMe = m.sender === userId;
+                          const senderDetails = getUserDetails(m.sender);
+                          return (
+                            <motion.div 
+                              key={i} 
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ duration: 0.3 }}
+                              className={`flex gap-3 ${isMe ? 'justify-end' : 'justify-start'}`}
+                            >
+                              {!isMe && (
+                                <img 
+                                  src={senderDetails?.profilePicture || `https://ui-avatars.com/api/?name=${senderDetails?.name || 'User'}&background=3B82F6&color=fff`}
+                                  alt="Avatar"
+                                  className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                                />
+                              )}
+                              <div className={`max-w-xs ${isMe ? 'order-1' : ''}`}>
+                                <div 
+                                  className={`px-4 py-3 rounded-2xl ${isMe ? 'bg-blue-600 text-white rounded-br-none shadow-md' : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 rounded-bl-none'}`}
+                                >
+                                  {m.image && (
+                                    <img 
+                                      src={m.image} 
+                                      alt="Sent image" 
+                                      className="max-w-xs rounded-lg mb-2 cursor-pointer hover:opacity-90 transition"
+                                    />
+                                  )}
+                                  {m.audio && <CustomAudioPlayer audioSrc={m.audio} isMe={isMe} />}
+                                  {m.text && <p className="text-sm leading-relaxed">{m.text}</p>}
+                                </div>
+                                <span className={`text-xs text-gray-500 dark:text-gray-400 mt-1 block ${isMe ? 'text-right' : 'text-left'}`}>
+                                  {new Date(m.createdAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                              </div>
+                            </motion.div>
+                          )
+                        })
+                      )}
+                    </AnimatePresence>
+                  </div>
+                  <div ref={scrollRef}></div>
+                </div>
 
-                <button 
-                  disabled={!newMessage.trim()} 
-                  type="submit" 
-                  className="bg-primary hover:bg-green-600 text-white font-bold h-12 w-12 md:h-14 md:w-14 rounded-full flex items-center justify-center transition-all disabled:opacity-50 disabled:scale-95 hover:shadow-lg hover:shadow-primary/30 flex-shrink-0"
-                >
-                  <Send size={20} className="ml-1" />
-                </button>
-              </form>
-            </div>
-          </>
-        ) : (
-          <div className="flex-1 flex items-center justify-center flex-col">
-            <div className="w-32 h-32 bg-primary/5 rounded-full flex items-center justify-center mb-6">
-              <Send size={48} className="text-primary/40 -ml-2" />
-            </div>
-            <h3 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight mb-3">Your Messages</h3>
-            <p className="text-gray-500 dark:text-gray-400 font-medium text-center max-w-sm">
-              Select a conversation from the sidebar to start discussing your next big project.
-            </p>
+                {/* Input Area */}
+                <div className="px-6 py-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
+                  <form onSubmit={handleSubmit} className="flex gap-3 items-end relative">
+                    {/* File Input */}
+                    <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      onChange={handleImageChange} 
+                      accept="image/*" 
+                      className="hidden" 
+                    />
+
+                    {/* Emoji, Image, Voice Buttons */}
+                    <div className="flex gap-2">
+                      <motion.button 
+                        type="button"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => fileInputRef.current?.click()}
+                        className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
+                        title="Attach image"
+                      >
+                        <ImageIcon size={20} />
+                      </motion.button>
+                      <motion.button 
+                        type="button"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                        className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors text-gray-600 dark:text-gray-400 hover:text-yellow-500"
+                        title="Add emoji"
+                      >
+                        <Smile size={20} />
+                      </motion.button>
+                      <motion.button 
+                        type="button"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onMouseDown={handleStartRecording}
+                        onMouseUp={handleStopRecording}
+                        onTouchStart={handleStartRecording}
+                        onTouchEnd={handleStopRecording}
+                        className={`p-2.5 rounded-lg transition-colors ${isRecording ? 'bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400' : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400'}`}
+                        title="Hold to record voice"
+                      >
+                        {isRecording ? <Square size={20} /> : <Mic size={20} />}
+                      </motion.button>
+                    </div>
+
+                    {/* Emoji Picker */}
+                    <AnimatePresence>
+                      {showEmojiPicker && (
+                        <motion.div 
+                          initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                          className="absolute bottom-16 left-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-3 rounded-xl shadow-lg z-50 grid grid-cols-8 gap-1"
+                        >
+                          {COMMON_EMOJIS.map(emoji => (
+                            <button 
+                              key={emoji} 
+                              type="button"
+                              onClick={() => {
+                                setNewMessage(p => p + emoji);
+                                setShowEmojiPicker(false);
+                              }}
+                              className="text-xl hover:bg-gray-100 dark:hover:bg-gray-700 p-2 rounded-lg transition hover:scale-125 active:scale-95"
+                            >
+                              {emoji}
+                            </button>
+                          ))}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    {/* Message Input */}
+                    <input 
+                      type="text" 
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      placeholder="Type a message..."
+                      className="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all"
+                    />
+
+                    {/* Send Button */}
+                    <motion.button 
+                      type="submit"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      disabled={!newMessage.trim()}
+                      className="p-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white rounded-lg transition-colors flex-shrink-0 disabled:cursor-not-allowed"
+                      title="Send message"
+                    >
+                      <Send size={20} />
+                    </motion.button>
+                  </form>
+                </div>
+              </>
+            ) : (
+              <div className="flex-1 flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-950">
+                <div className="text-center">
+                  <div className="w-24 h-24 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <UserIcon size={48} className="text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Your Messages</h2>
+                  <p className="text-gray-500 dark:text-gray-400 max-w-sm mx-auto">
+                    Select a conversation from the sidebar to start messaging with clients and freelancers about your projects.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

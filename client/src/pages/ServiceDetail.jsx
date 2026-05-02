@@ -1,15 +1,16 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import api from '../services/api';
 import { AuthContext } from '../context/AuthContext';
 import { motion } from 'framer-motion';
-import { Star, Clock, CheckCircle } from 'lucide-react';
+import { Star, Clock, CheckCircle, Heart } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 const ServiceDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useContext(AuthContext);
+  const { user, toggleSavedService } = useContext(AuthContext);
   const [service, setService] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -97,11 +98,35 @@ const ServiceDetail = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-12 mt-8 flex flex-col md:flex-row gap-10">
+      <Helmet>
+        <title>{service.title} | FreelanceHub</title>
+        <meta name="description" content={service.description?.substring(0, 150)} />
+        <meta property="og:title" content={service.title} />
+        <meta property="og:description" content={service.description?.substring(0, 150)} />
+        <meta property="og:image" content={service.image || 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80'} />
+        <meta property="og:url" content={window.location.href} />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={service.title} />
+        <meta name="twitter:description" content={service.description?.substring(0, 150)} />
+        <meta name="twitter:image" content={service.image || 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80'} />
+      </Helmet>
       {/* Main Content */}
       <div className="flex-1">
-        <h1 className="text-3xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
-          {service.title}
-        </h1>
+        <div className="flex items-start justify-between gap-4 mb-6">
+          <h1 className="text-3xl md:text-5xl font-bold text-gray-900 dark:text-white leading-tight">
+            {service.title}
+          </h1>
+          <button 
+            onClick={() => toggleSavedService(service._id)}
+            className="p-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition-colors flex-shrink-0"
+          >
+            <Heart 
+              size={28} 
+              className={user?.savedServices?.includes(service._id) ? "text-red-500 fill-red-500" : "text-gray-400 hover:text-red-400"} 
+            />
+          </button>
+        </div>
         
         <Link 
           to={`/profile/${service.freelancer?._id}`}
@@ -163,7 +188,7 @@ const ServiceDetail = () => {
         <div className="pt-8 border-t border-gray-200 dark:border-gray-800">
           <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Reviews ({reviews.length})</h2>
           
-          {user?.role === 'client' && (
+          {user && (
             <form onSubmit={handleReviewSubmit} className="mb-10 bg-gray-50 dark:bg-gray-800/50 p-6 rounded-2xl border border-gray-100 dark:border-gray-700">
               <h4 className="font-semibold text-gray-900 dark:text-white mb-4">Leave a Review</h4>
               <div className="flex items-center gap-2 mb-4">

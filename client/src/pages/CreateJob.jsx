@@ -62,10 +62,6 @@ const CreateJob = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (user?.role !== 'client') {
-      toast.error('Only clients can post jobs.');
-      return;
-    }
     setIsSubmitting(true);
     try {
       const payload = {

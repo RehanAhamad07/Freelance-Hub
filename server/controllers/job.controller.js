@@ -2,7 +2,7 @@ const Job = require('../models/Job');
 
 const createJob = async (req, res) => {
   try {
-    if (req.user.role !== 'client') {
+    if (!req.user.roles.includes('client')) {
       return res.status(403).json({ error: 'Only clients can post jobs' });
     }
 
@@ -20,16 +20,31 @@ const createJob = async (req, res) => {
 
 const getJobs = async (req, res) => {
   try {
-    const { category, search, client, status } = req.query;
+    const { category, search, client, status, minBudget, maxBudget } = req.query;
     let query = {};
+    
     if (category) query.category = category;
     if (client) query.client = client;
     if (status) query.status = status;
     if (search) query.title = { $regex: search, $options: 'i' };
+    
+    // Budget range filtering - ensure proper type conversion
+    if (minBudget || maxBudget) {
+      query.budget = {};
+      if (minBudget) {
+        const min = parseFloat(minBudget);
+        if (!isNaN(min)) query.budget.$gte = min;
+      }
+      if (maxBudget) {
+        const max = parseFloat(maxBudget);
+        if (!isNaN(max)) query.budget.$lte = max;
+      }
+    }
 
-    const jobs = await Job.find(query).populate('client', 'name profilePicture rating').sort({ createdAt: -1 });
+    const jobs = await Job.find(query).populate('client', 'name profilePicture rating').sort({ createdAt: -1 }).lean();
     res.json(jobs);
   } catch (error) {
+    console.error('Job fetch error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };

@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../services/api';
-import { motion } from 'framer-motion';
-import { Link, useSearchParams } from 'react-router-dom';
-import { Briefcase, Search as SearchIcon, Clock, DollarSign, Code, PenTool, Video, Pen, Music, MoreHorizontal } from 'lucide-react';
+import { AuthContext } from '../context/AuthContext';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Briefcase, Search as SearchIcon, Clock, DollarSign, Code, PenTool, Video, Pen, Music, MoreHorizontal, ChevronDown, X, Star, MapPin, Filter, Heart } from 'lucide-react';
 
 const categoryIcons = {
   'Programming & Tech': Code,
@@ -23,24 +24,49 @@ const categoryColors = {
 };
 
 const statusColors = {
-  'OPEN': 'bg-gradient-to-r from-green-400 to-green-600 text-white',
-  'IN_PROGRESS': 'bg-gradient-to-r from-blue-400 to-blue-600 text-white',
-  'CLOSED': 'bg-gradient-to-r from-gray-400 to-gray-600 text-white',
+  'OPEN': 'bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800',
+  'IN_PROGRESS': 'bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800',
+  'CLOSED': 'bg-gray-50 dark:bg-gray-950 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-800',
 };
+
+const allCategories = [
+  'Programming & Tech',
+  'Graphics & Design', 
+  'Video & Animation',
+  'Writing & Translation',
+  'Music & Audio',
+  'Other'
+];
 
 const JobsListing = () => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  
   const searchQuery = searchParams.get('search') || '';
   const categoryQuery = searchParams.get('category') || '';
+  const minBudget = searchParams.get('minBudget') || '';
+  const maxBudget = searchParams.get('maxBudget') || '';
+  
+  const [filters, setFilters] = useState({
+    search: searchQuery,
+    category: categoryQuery,
+    minBudget: minBudget,
+    maxBudget: maxBudget,
+  });
+  
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const { user, toggleSavedJob } = useContext(AuthContext);
 
   useEffect(() => {
     const fetchJobs = async () => {
       try {
         const params = {};
-        if (searchQuery) params.search = searchQuery;
-        if (categoryQuery) params.category = categoryQuery;
+        if (filters.search) params.search = filters.search;
+        if (filters.category) params.category = filters.category;
+        if (filters.minBudget) params.minBudget = filters.minBudget;
+        if (filters.maxBudget) params.maxBudget = filters.maxBudget;
         
         const res = await api.get('/jobs', { params });
         setJobs(res.data);
@@ -51,180 +77,378 @@ const JobsListing = () => {
       }
     };
     fetchJobs();
-  }, [searchQuery, categoryQuery]);
+  }, [filters]);
 
   const getColorScheme = (category) => categoryColors[category] || categoryColors['Other'];
   const getCategoryIcon = (category) => categoryIcons[category] || MoreHorizontal;
+  
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters);
+    const params = new URLSearchParams();
+    if (newFilters.search) params.set('search', newFilters.search);
+    if (newFilters.category) params.set('category', newFilters.category);
+    if (newFilters.minBudget) params.set('minBudget', newFilters.minBudget);
+    if (newFilters.maxBudget) params.set('maxBudget', newFilters.maxBudget);
+    navigate(`?${params.toString()}`, { replace: true });
+  };
+  
+  const clearFilters = () => {
+    setFilters({ search: '', category: '', minBudget: '', maxBudget: '' });
+    navigate('?');
+  };
 
   return (
-    <div className="min-h-screen py-12 bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900">
-      <div className="max-w-7xl mx-auto px-4">
-        {/* Header */}
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-14 relative"
-        >
-          <div className="absolute -top-20 left-0 right-0 h-40 bg-gradient-to-b from-blue-100/30 to-transparent dark:from-blue-950/20 blur-3xl rounded-full"></div>
-          <div className="relative z-10">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg">
-                <Briefcase size={24} className="text-white" />
-              </div>
-              <h1 className="text-5xl md:text-6xl font-black bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
-                Explore Jobs
-              </h1>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+      {/* Hero Section with Search */}
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800"
+      >
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2.5 bg-blue-500 rounded-lg">
+              <Briefcase size={24} className="text-white" />
             </div>
-            <p className="text-lg text-gray-600 dark:text-gray-300 font-medium ml-0">
-              Find freelance opportunities and tasks from amazing clients
-            </p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              Browse Jobs
+            </h1>
           </div>
-        </motion.div>
+          
+          {/* Search Bar */}
+          <div className="flex gap-3">
+            <div className="flex-1 relative">
+              <SearchIcon size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search jobs by title, skills, or keyword..."
+                value={filters.search}
+                onChange={(e) => handleFilterChange({...filters, search: e.target.value})}
+                className="w-full bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg pl-10 pr-4 py-3 outline-none border-2 border-transparent focus:border-blue-500 transition-colors text-sm"
+              />
+            </div>
+            <button
+              onClick={() => setShowMobileFilters(!showMobileFilters)}
+              className="md:hidden flex items-center gap-2 px-4 py-3 bg-gray-900 dark:bg-gray-800 text-white rounded-lg hover:bg-gray-800 dark:hover:bg-gray-700 transition"
+            >
+              <Filter size={18} />
+            </button>
+          </div>
+        </div>
+      </motion.div>
 
-        {loading ? (
-          <div className="space-y-4">
-            {[...Array(5)].map((_, i) => (
-              <motion.div 
-                key={i} 
-                animate={{ opacity: [0.5, 1, 0.5] }}
-                transition={{ duration: 2, repeat: Infinity }}
-                className="animate-pulse bg-gradient-to-r from-gray-200 to-gray-100 dark:from-gray-700 dark:to-gray-600 rounded-2xl h-40 border border-gray-200 dark:border-gray-600 w-full"
-              ></motion.div>
-            ))}
-          </div>
-        ) : jobs.length === 0 ? (
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center py-20 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-3xl border-2 border-dashed border-gray-300 dark:border-gray-700"
-          >
-            <Briefcase size={48} className="mx-auto text-gray-400 mb-4" />
-            <p className="text-xl text-gray-600 dark:text-gray-400 font-semibold">No jobs found</p>
-            <p className="text-gray-500 dark:text-gray-500 mt-2">Try adjusting your search criteria</p>
-          </motion.div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {jobs.map((job, i) => {
-              const colors = getColorScheme(job.category);
-              const CategoryIcon = getCategoryIcon(job.category);
-              
-              return (
-                <motion.div 
-                  key={job._id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                  whileHover={{ y: -8, transition: { duration: 0.3 } }}
-                  className={`group relative rounded-3xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 flex flex-col`}
-                >
-                  {/* Gradient accent bar */}
-                  <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${colors.gradient}`}></div>
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Filters Sidebar */}
+          <AnimatePresence>
+            {(showMobileFilters || window.innerWidth >= 1024) && (
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="lg:col-span-1"
+              >
+                <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 sticky top-32">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-white">Filters</h2>
+                    {(filters.search || filters.category || filters.minBudget || filters.maxBudget) && (
+                      <button
+                        onClick={clearFilters}
+                        className="text-xs text-blue-600 dark:text-blue-400 hover:underline font-semibold"
+                      >
+                        Clear All
+                      </button>
+                    )}
+                  </div>
                   
-                  {/* Background gradient effect */}
-                  <div className={`absolute -top-20 -right-20 w-40 h-40 rounded-full opacity-5 pointer-events-none ${colors.bg.replace('bg-', 'bg-').replace('-50', '-400')}`}></div>
-
-                  <div className="p-6 flex flex-col h-full relative z-10">
-                    {/* Header with category and status */}
-                    <div className="flex items-start justify-between gap-3 mb-3">
-                      <div className="flex items-start gap-3 flex-1">
-                        <div className={`p-2.5 rounded-xl ${colors.bg} flex-shrink-0 group-hover:scale-110 transition-transform`}>
-                          <CategoryIcon size={20} className={colors.text} />
-                        </div>
-                        <div className="flex-1">
-                          <p className={`text-xs font-bold uppercase tracking-widest ${colors.text} mb-1`}>
-                            {job.category}
-                          </p>
-                          <Link to={`/jobs/${job._id}`} className="block group/title">
-                            <h3 className="text-xl font-black text-gray-900 dark:text-white group-hover/title:text-transparent group-hover/title:bg-gradient-to-r group-hover/title:from-blue-600 group-hover/title:to-purple-600 group-hover/title:bg-clip-text transition-all line-clamp-2">
-                              {job.title}
-                            </h3>
-                          </Link>
-                        </div>
-                      </div>
-                      <span className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider whitespace-nowrap ${statusColors[job.status] || statusColors['OPEN']} shadow-lg`}>
-                        {job.status}
-                      </span>
+                  {/* Category Filter */}
+                  <div className="mb-8">
+                    <label className="block text-sm font-bold text-gray-900 dark:text-white mb-3">
+                      Category
+                    </label>
+                    <div className="space-y-2">
+                      <button
+                        onClick={() => handleFilterChange({...filters, category: ''})}
+                        className={`w-full text-left px-3 py-2 rounded-lg text-sm transition ${
+                          !filters.category
+                            ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-semibold'
+                            : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                        }`}
+                      >
+                        All Categories
+                      </button>
+                      {allCategories.map((cat) => (
+                        <button
+                          key={cat}
+                          onClick={() => handleFilterChange({...filters, category: cat})}
+                          className={`w-full text-left px-3 py-2 rounded-lg text-sm transition ${
+                            filters.category === cat
+                              ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-semibold'
+                              : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                          }`}
+                        >
+                          {cat}
+                        </button>
+                      ))}
                     </div>
-                    
-                    {/* Description */}
-                    <p className="text-gray-600 dark:text-gray-300 text-sm line-clamp-2 mb-4 leading-relaxed">
-                      {job.description}
-                    </p>
-                    
-                    {/* Skills */}
-                    {job.skills && job.skills.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {job.skills.slice(0, 3).map((skill, index) => (
-                          <span 
-                            key={index} 
-                            className={`px-3 py-1 rounded-lg text-xs font-semibold ${colors.badge} border border-current border-opacity-20 backdrop-blur-sm`}
-                          >
-                            {skill}
+                  </div>
+
+                  {/* Budget Filter */}
+                  <div className="mb-8">
+                    <label className="block text-sm font-bold text-gray-900 dark:text-white mb-4">
+                      Budget Range ($)
+                    </label>
+                    <div className="space-y-3">
+                      <div className="relative">
+                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">$</div>
+                        <input
+                          type="number"
+                          placeholder="Minimum"
+                          min="0"
+                          value={filters.minBudget}
+                          onChange={(e) => handleFilterChange({...filters, minBudget: e.target.value})}
+                          className="w-full pl-8 pr-3 py-2.5 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg text-sm outline-none border-2 border-transparent focus:border-blue-500 focus:bg-white dark:focus:bg-gray-700 transition font-semibold"
+                        />
+                      </div>
+                      <div className="relative">
+                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">$</div>
+                        <input
+                          type="number"
+                          placeholder="Maximum"
+                          min="0"
+                          value={filters.maxBudget}
+                          onChange={(e) => handleFilterChange({...filters, maxBudget: e.target.value})}
+                          className="w-full pl-8 pr-3 py-2.5 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg text-sm outline-none border-2 border-transparent focus:border-blue-500 focus:bg-white dark:focus:bg-gray-700 transition font-semibold"
+                        />
+                      </div>
+                      {(filters.minBudget || filters.maxBudget) && (
+                        <div className="px-3 py-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                          <p className="text-xs text-blue-700 dark:text-blue-300 font-semibold">
+                            Showing jobs from ${filters.minBudget || '0'} to ${filters.maxBudget || 'any'}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Timeline Filter */}
+                  <div className="mb-8">
+                    <label className="block text-sm font-bold text-gray-900 dark:text-white mb-3">
+                      Timeline
+                    </label>
+                    <div className="space-y-2">
+                      {['1-3 Days', '1 Week', '2-4 Weeks', '1-3 Months'].map((timeline) => (
+                        <button
+                          key={timeline}
+                          className="w-full text-left px-3 py-2 rounded-lg text-sm transition text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                        >
+                          {timeline}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Active Filters */}
+                  {(filters.search || filters.category || filters.minBudget || filters.maxBudget) && (
+                    <div className="pt-6 border-t border-gray-200 dark:border-gray-800">
+                      <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold mb-3">Active Filters</p>
+                      <div className="flex flex-wrap gap-2">
+                        {filters.search && (
+                          <span className="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full text-xs font-semibold">
+                            {filters.search}
+                            <button onClick={() => handleFilterChange({...filters, search: ''})}>
+                              <X size={14} />
+                            </button>
                           </span>
-                        ))}
-                        {job.skills.length > 3 && (
-                          <span className={`px-3 py-1 rounded-lg text-xs font-bold ${colors.badge} border border-current border-opacity-20`}>
-                            +{job.skills.length - 3}
+                        )}
+                        {filters.category && (
+                          <span className="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full text-xs font-semibold">
+                            {filters.category}
+                            <button onClick={() => handleFilterChange({...filters, category: ''})}>
+                              <X size={14} />
+                            </button>
+                          </span>
+                        )}
+                        {(filters.minBudget || filters.maxBudget) && (
+                          <span className="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full text-xs font-semibold">
+                            ${filters.minBudget || '0'} - ${filters.maxBudget || '∞'}
+                            <button onClick={() => handleFilterChange({...filters, minBudget: '', maxBudget: ''})}>
+                              <X size={14} />
+                            </button>
                           </span>
                         )}
                       </div>
-                    )}
-
-                    {/* Bottom section */}
-                    <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-auto space-y-3">
-                      {/* Budget and Timeline */}
-                      <div className="flex items-center justify-between gap-4 flex-wrap">
-                        <div className="flex items-center gap-3">
-                          <div className="flex items-center gap-2">
-                            <div className={`p-1.5 rounded-lg ${colors.bg}`}>
-                              <DollarSign size={16} className={colors.text} />
-                            </div>
-                            <div>
-                              <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">Budget</p>
-                              <p className="font-bold text-gray-900 dark:text-white flex items-center">
-                                <span className={`text-lg mr-1 ${colors.text}`}>{job.currency === 'INR' ? '₹' : '$'}</span>
-                                {job.budget}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center gap-2">
-                          <div className={`p-1.5 rounded-lg ${colors.bg}`}>
-                            <Clock size={16} className={colors.text} />
-                          </div>
-                          <div>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">Timeline</p>
-                            <p className="font-bold text-gray-900 dark:text-white">{job.deliveryTime}</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Posted by */}
-                      <div className="flex items-center gap-3 pt-3 border-t border-gray-100 dark:border-gray-700">
-                        <span className="text-xs text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider">Posted by</span>
-                        <div className="flex items-center gap-2 flex-1">
-                          {job.client?.profilePicture ? (
-                            <img 
-                              src={job.client.profilePicture} 
-                              alt={job.client.name} 
-                              className="w-7 h-7 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600" 
-                            />
-                          ) : (
-                            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center font-bold text-xs text-white">
-                              {job.client?.name?.charAt(0) || 'C'}
-                            </div>
-                          )}
-                          <span className="font-semibold text-gray-800 dark:text-gray-200">{job.client?.name || 'Client'}</span>
-                        </div>
-                      </div>
                     </div>
-                  </div>
-                </motion.div>
-              );
-            })}
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Jobs List */}
+          <div className="lg:col-span-3">
+            {loading ? (
+              <div className="space-y-4">
+                {[...Array(5)].map((_, i) => (
+                  <motion.div 
+                    key={i} 
+                    animate={{ opacity: [0.5, 1, 0.5] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                    className="bg-gray-200 dark:bg-gray-800 rounded-xl h-48 w-full"
+                  ></motion.div>
+                ))}
+              </div>
+            ) : jobs.length === 0 ? (
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-center py-20 bg-white dark:bg-gray-900 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700"
+              >
+                <Briefcase size={48} className="mx-auto text-gray-400 mb-4" />
+                <p className="text-xl text-gray-600 dark:text-gray-400 font-semibold">No jobs found</p>
+                <p className="text-gray-500 dark:text-gray-500 mt-2">Try adjusting your search criteria</p>
+              </motion.div>
+            ) : (
+              <div className="space-y-4">
+                {jobs.map((job, i) => {
+                  const colors = getColorScheme(job.category);
+                  const CategoryIcon = getCategoryIcon(job.category);
+                  const isLiked = user?.savedJobs?.includes(job._id);
+                  
+                  return (
+                    <motion.div 
+                      key={job._id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.05 }}
+                      whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                      className="group bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
+                    >
+                      <div className="p-6">
+                        {/* Header */}
+                        <div className="flex items-start gap-4 mb-4">
+                          <div className={`p-3 rounded-lg ${colors.bg} flex-shrink-0`}>
+                            <CategoryIcon size={22} className={colors.text} />
+                          </div>
+                          
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start gap-3 mb-2">
+                              <div className="flex-1">
+                                <p className={`text-xs font-bold uppercase tracking-widest ${colors.text} mb-1`}>
+                                  {job.category}
+                                </p>
+                                <Link to={`/jobs/${job._id}`} className="block group/title">
+                                  <h3 className="text-lg font-bold text-gray-900 dark:text-white group-hover/title:text-blue-600 dark:group-hover/title:text-blue-400 transition-colors line-clamp-1">
+                                    {job.title}
+                                  </h3>
+                                </Link>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => toggleSavedJob(job._id)}
+                                  className="flex-shrink-0 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                                >
+                                  <Heart 
+                                    size={20} 
+                                    className={isLiked ? 'text-red-500 fill-red-500' : 'text-gray-400 hover:text-red-400'}
+                                  />
+                                </button>
+                                <span className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap flex-shrink-0 ${statusColors[job.status] || statusColors['OPEN']}`}>
+                                  {job.status}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Description */}
+                            <p className="text-gray-600 dark:text-gray-300 text-sm line-clamp-2 mb-3">
+                              {job.description}
+                            </p>
+
+                            {/* Skills */}
+                            {job.skills && job.skills.length > 0 && (
+                              <div className="flex flex-wrap gap-2 mb-4">
+                                {job.skills.slice(0, 3).map((skill, index) => (
+                                  <span 
+                                    key={index} 
+                                    className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-md text-xs font-semibold border border-gray-200 dark:border-gray-700"
+                                  >
+                                    {skill}
+                                  </span>
+                                ))}
+                                {job.skills.length > 3 && (
+                                  <span className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-md text-xs font-bold">
+                                    +{job.skills.length - 3} more
+                                  </span>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Bottom Info */}
+                            <div className="flex flex-wrap items-center gap-6 pt-4 border-t border-gray-200 dark:border-gray-800">
+                              {/* Budget */}
+                              <div className="flex items-center gap-3">
+                                <div className={`p-2 rounded-lg ${colors.bg}`}>
+                                  <DollarSign size={16} className={colors.text} />
+                                </div>
+                                <div>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">Budget</p>
+                                  <p className="font-bold text-gray-900 dark:text-white">
+                                    {job.currency === 'INR' ? '₹' : '$'}{job.budget}
+                                  </p>
+                                </div>
+                              </div>
+
+                              {/* Timeline */}
+                              <div className="flex items-center gap-3">
+                                <div className={`p-2 rounded-lg ${colors.bg}`}>
+                                  <Clock size={16} className={colors.text} />
+                                </div>
+                                <div>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">Timeline</p>
+                                  <p className="font-bold text-gray-900 dark:text-white">{job.deliveryTime}</p>
+                                </div>
+                              </div>
+
+                              {/* Client Info */}
+                              <div className="flex items-center gap-3 ml-auto">
+                                {job.client?.profilePicture ? (
+                                  <img 
+                                    src={job.client.profilePicture} 
+                                    alt={job.client.name} 
+                                    className="w-8 h-8 rounded-full object-cover border-2 border-gray-200 dark:border-gray-700" 
+                                  />
+                                ) : (
+                                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center font-bold text-xs text-white">
+                                    {job.client?.name?.charAt(0) || 'C'}
+                                  </div>
+                                )}
+                                <div className="text-sm">
+                                  <p className="font-semibold text-gray-900 dark:text-white">{job.client?.name || 'Client'}</p>
+                                  <div className="flex items-center gap-1">
+                                    <Star size={12} className="text-yellow-500 fill-yellow-500" />
+                                    <span className="text-xs text-gray-600 dark:text-gray-400">4.9 (120 reviews)</span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* View Button */}
+                              <Link
+                                to={`/jobs/${job._id}`}
+                                className="ml-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-sm transition-colors"
+                              >
+                                View Details
+                              </Link>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

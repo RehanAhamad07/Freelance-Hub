@@ -39,18 +39,17 @@ const importData = async () => {
     const salt = await bcrypt.genSalt(10);
     const password = await bcrypt.hash('123456', salt);
 
-    // Create 2 Clients
-    const createdClients = await User.insertMany([
-      { name: 'John Client', email: 'client1@test.com', password, role: 'client' },
-      { name: 'Alice Client', email: 'client2@test.com', password, role: 'client' }
+    // Create users with both client and freelancer roles
+    const createdUsers = await User.insertMany([
+      { name: 'John Client', email: 'client1@test.com', password, roles: ['client', 'freelancer'] },
+      { name: 'Alice Client', email: 'client2@test.com', password, roles: ['client', 'freelancer'] },
+      { name: 'Pro Dev', email: 'dev@test.com', password, roles: ['client', 'freelancer'], bio: 'Expert Developer', skills: ['React', 'Node'] },
+      { name: 'Anna Designer', email: 'design@test.com', password, roles: ['client', 'freelancer'], bio: 'Creative Designer', skills: ['Figma', 'Photoshop'] },
+      { name: 'Mike Writer', email: 'write@test.com', password, roles: ['client', 'freelancer'], bio: 'SEO Copywriter', skills: ['SEO', 'Blogging'] }
     ]);
 
-    // Create 3 Freelancers
-    const createdFreelancers = await User.insertMany([
-      { name: 'Pro Dev', email: 'dev@test.com', password, role: 'freelancer', bio: 'Expert Developer', skills: ['React', 'Node'] },
-      { name: 'Anna Designer', email: 'design@test.com', password, role: 'freelancer', bio: 'Creative Designer', skills: ['Figma', 'Photoshop'] },
-      { name: 'Mike Writer', email: 'write@test.com', password, role: 'freelancer', bio: 'SEO Copywriter', skills: ['SEO', 'Blogging'] }
-    ]);
+    const createdClients = createdUsers.slice(0, 2);
+    const createdFreelancers = createdUsers.slice(2, 5);
 
     // Create Services
     const sampleServices = [

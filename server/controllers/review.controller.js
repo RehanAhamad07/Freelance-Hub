@@ -6,7 +6,7 @@ const createReview = async (req, res) => {
   try {
     const { rating, comment, serviceId } = req.body;
 
-    if (req.user.role !== 'client') {
+    if (!req.user.roles.includes('client')) {
       return res.status(403).json({ error: 'Only clients can leave reviews' });
     }
 

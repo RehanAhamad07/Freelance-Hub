@@ -2,9 +2,10 @@ import React, { useState, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { GoogleLogin } from '@react-oauth/google';
 
 const Login = () => {
-  const { login } = useContext(AuthContext);
+  const { login, googleLogin } = useContext(AuthContext);
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: '', password: '' });
 
@@ -14,6 +15,15 @@ const Login = () => {
     e.preventDefault();
     const success = await login(formData.email, formData.password);
     if (success) navigate('/dashboard');
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    const success = await googleLogin(credentialResponse.credential);
+    if (success) navigate('/dashboard');
+  };
+
+  const handleGoogleError = () => {
+    console.error('Google Login Failed');
   };
 
   return (
@@ -42,7 +52,10 @@ const Login = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
+              <Link to="/forgot-password" className="text-sm text-primary hover:underline font-medium">Forgot Password?</Link>
+            </div>
             <input 
               type="password" 
               name="password"
@@ -61,6 +74,20 @@ const Login = () => {
             Sign In
           </button>
         </form>
+
+        <div className="mt-6 flex items-center justify-between">
+          <span className="w-1/5 border-b dark:border-gray-600 lg:w-1/4"></span>
+          <span className="text-xs text-center text-gray-500 uppercase dark:text-gray-400">or login with</span>
+          <span className="w-1/5 border-b dark:border-gray-600 lg:w-1/4"></span>
+        </div>
+
+        <div className="mt-6 flex justify-center">
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={handleGoogleError}
+            useOneTap
+          />
+        </div>
 
         <p className="text-center mt-6 text-gray-600 dark:text-gray-400">
           Don't have an account? <Link to="/register" className="text-primary hover:underline font-medium">Join now</Link>
