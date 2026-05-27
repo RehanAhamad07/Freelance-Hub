@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../services/api';
 import { AuthContext } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Briefcase, Search as SearchIcon, Clock, DollarSign, Code, PenTool, Video, Pen, Music, MoreHorizontal, ChevronDown, X, Star, MapPin, Filter, Heart } from 'lucide-react';
+import { Briefcase, Search as SearchIcon, Clock, DollarSign, Code, PenTool, Video, Pen, Music, MoreHorizontal, ChevronDown, X, Star, MapPin, Filter, Heart, CheckCircle } from 'lucide-react';
 
 const categoryIcons = {
   'Programming & Tech': Code,
@@ -423,8 +423,15 @@ const JobsListing = () => {
                                   </div>
                                 )}
                                 <div className="text-sm">
-                                  <p className="font-semibold text-gray-900 dark:text-white">{job.client?.name || 'Client'}</p>
-                                  <div className="flex items-center gap-1">
+                                  <div className="flex items-center gap-1.5">
+                                    <p className="font-semibold text-gray-900 dark:text-white line-clamp-1">{job.client?.name || 'Client'}</p>
+                                    {job.client?.paymentVerified !== false && (
+                                      <span className="text-[10px] bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 font-bold px-1.5 py-0.2 rounded border border-green-200 dark:border-green-800/40 flex items-center gap-0.5 whitespace-nowrap" title="Payment Verified">
+                                        <CheckCircle size={9} /> Verified
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="flex items-center gap-1 mt-0.5">
                                     <Star size={12} className="text-yellow-500 fill-yellow-500" />
                                     <span className="text-xs text-gray-600 dark:text-gray-400">4.9 (120 reviews)</span>
                                   </div>

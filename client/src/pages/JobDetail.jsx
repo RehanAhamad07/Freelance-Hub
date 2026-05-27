@@ -4,7 +4,7 @@ import { Helmet } from 'react-helmet-async';
 import api from '../services/api';
 import { AuthContext } from '../context/AuthContext';
 import { motion } from 'framer-motion';
-import { DollarSign, Clock, Calendar, CheckCircle, MapPin, Star, ArrowLeft, Share2, Heart, X, Users } from 'lucide-react';
+import { DollarSign, Clock, Calendar, CheckCircle, MapPin, Star, ArrowLeft, Share2, Heart, X, Users, Wand2, Loader2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 const JobDetail = () => {
@@ -14,6 +14,7 @@ const JobDetail = () => {
   const [showProposalForm, setShowProposalForm] = useState(false);
   const [proposalCount, setProposalCount] = useState(0);
   const [submittingProposal, setSubmittingProposal] = useState(false);
+  const [aiProposalLoading, setAiProposalLoading] = useState(false);
   const { user, toggleSavedJob } = useContext(AuthContext);
   const navigate = useNavigate();
 
@@ -330,9 +331,16 @@ const JobDetail = () => {
                     >
                       {job.client.name}
                     </Link>
-                    <div className="flex items-center gap-1 mt-2 text-sm text-green-600 dark:text-green-400">
-                      <CheckCircle size={14} />
-                      <span className="font-medium">Verified Employer</span>
+                    <div className="flex flex-wrap items-center gap-2 mt-2 text-sm text-green-600 dark:text-green-400">
+                      <div className="flex items-center gap-1">
+                        <CheckCircle size={14} />
+                        <span className="font-medium">Verified Employer</span>
+                      </div>
+                      {job.client.paymentVerified !== false && (
+                        <span className="px-2 py-0.5 bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 rounded text-[11px] font-bold uppercase tracking-wider border border-green-200 dark:border-green-800/50">
+                          💳 Payment Verified
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -398,6 +406,12 @@ const JobDetail = () => {
                     <CheckCircle size={14} className="text-green-500" />
                     <span>Verified Employer</span>
                   </div>
+                  {job.client.paymentVerified !== false && (
+                    <div className="flex items-center gap-2 font-semibold text-green-700 dark:text-green-400">
+                      <CheckCircle size={14} className="text-green-500" />
+                      <span>Payment Method Verified</span>
+                    </div>
+                  )}
                   <div className="flex items-center gap-2">
                     <CheckCircle size={14} className="text-green-500" />
                     <span>Secure Payments</span>
@@ -500,14 +514,39 @@ const JobDetail = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
-                  Cover Letter
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-semibold text-gray-900 dark:text-white">
+                    Cover Letter
+                  </label>
+                  <button
+                    type="button"
+                    disabled={aiProposalLoading}
+                    onClick={async () => {
+                      setAiProposalLoading(true);
+                      try {
+                        const res = await api.post('/ai/generate-proposal', {
+                          jobTitle: job.title,
+                          jobDescription: job.description
+                        });
+                        setProposalForm({ ...proposalForm, coverLetter: res.data.coverLetter });
+                        toast.success('AI cover letter generated!');
+                      } catch (error) {
+                        toast.error(error.response?.data?.error || 'Failed to generate cover letter');
+                      } finally {
+                        setAiProposalLoading(false);
+                      }
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white text-xs font-bold rounded-lg transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {aiProposalLoading ? <Loader2 size={13} className="animate-spin" /> : <Wand2 size={13} />}
+                    {aiProposalLoading ? 'Writing...' : '✨ AI Write'}
+                  </button>
+                </div>
                 <textarea
                   placeholder="Add a personal message to the client (optional)"
                   value={proposalForm.coverLetter}
                   onChange={(e) => setProposalForm({ ...proposalForm, coverLetter: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-gray-800 dark:text-white h-24 resize-none"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-gray-800 dark:text-white h-32 resize-none"
                 />
               </div>
 

@@ -4,7 +4,7 @@ import { Helmet } from 'react-helmet-async';
 import api from '../services/api';
 import { AuthContext } from '../context/AuthContext';
 import { motion } from 'framer-motion';
-import { Star, Clock, CheckCircle, Heart } from 'lucide-react';
+import { Star, Clock, CheckCircle, Heart, Award } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 const ServiceDetail = () => {
@@ -15,6 +15,7 @@ const ServiceDetail = () => {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' });
+  const [selectedAddons, setSelectedAddons] = useState([]);
 
   useEffect(() => {
     const fetchServiceAndReviews = async () => {
@@ -64,7 +65,7 @@ const ServiceDetail = () => {
     // Restriction removed: anyone can place an order
 
     try {
-      await api.post('/orders', { serviceId: id });
+      await api.post('/orders', { serviceId: id, addons: selectedAddons });
       toast.success('Order placed successfully! Redirecting to Dashboard...');
       navigate('/dashboard');
     } catch (error) {
@@ -140,8 +141,20 @@ const ServiceDetail = () => {
             </div>
           )}
           <div>
-            <h3 className="font-bold text-gray-900 dark:text-white text-lg hover:underline">{service.freelancer?.name || 'Freelancer'}</h3>
-            <div className="flex items-center gap-1 text-yellow-500">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="font-bold text-gray-900 dark:text-white text-lg hover:underline">{service.freelancer?.name || 'Freelancer'}</h3>
+              {service.freelancer?.verificationStatus === 'verified' && (
+                <span className="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-0.5 border border-green-200 dark:border-green-800/40">
+                  <CheckCircle size={10} /> Verified Talent
+                </span>
+              )}
+              {service.freelancer?.isTopRated && (
+                <span className="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-0.5 border border-amber-200 dark:border-amber-800/40">
+                  <Award size={10} /> Top Rated
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-1 text-yellow-500 mt-0.5">
               <Star size={16} className="fill-yellow-500" />
               <span className="font-bold">{service.rating.toFixed(1)}</span>
               <span className="text-gray-500 dark:text-gray-400">({service.reviewsCount} reviews)</span>
@@ -272,11 +285,49 @@ const ServiceDetail = () => {
             <li className="flex items-center gap-3 text-gray-600 dark:text-gray-300"><CheckCircle size={20} className="text-primary"/> Revisions</li>
           </ul>
 
+          {/* Add-ons */}
+          {service.addons && service.addons.length > 0 && (
+            <div className="mb-6">
+              <p className="font-bold text-sm text-gray-800 dark:text-gray-200 mb-3">💎 Boost Your Order</p>
+              <div className="space-y-2">
+                {service.addons.map(addon => (
+                  <label key={addon._id} className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                    selectedAddons.includes(addon._id) 
+                      ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20' 
+                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                  }`}>
+                    <input type="checkbox" className="w-4 h-4 accent-indigo-600 rounded" 
+                      checked={selectedAddons.includes(addon._id)}
+                      onChange={e => {
+                        if (e.target.checked) setSelectedAddons([...selectedAddons, addon._id]);
+                        else setSelectedAddons(selectedAddons.filter(a => a !== addon._id));
+                      }} />
+                    <div className="flex-1">
+                      <p className="text-sm font-bold text-gray-900 dark:text-white">{addon.title}</p>
+                      {addon.description && <p className="text-xs text-gray-500">{addon.description}</p>}
+                    </div>
+                    <span className="text-sm font-black text-green-600">+${addon.price}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Total */}
+          {selectedAddons.length > 0 && (
+            <div className="flex justify-between items-center mb-4 py-3 border-t border-gray-200 dark:border-gray-700">
+              <span className="font-bold text-gray-700 dark:text-gray-300">Total</span>
+              <span className="text-2xl font-black text-gray-900 dark:text-white">
+                ${service.price + (service.addons || []).filter(a => selectedAddons.includes(a._id)).reduce((s, a) => s + a.price, 0)}
+              </span>
+            </div>
+          )}
+
           <button 
             onClick={handleOrder}
             className="w-full bg-primary hover:bg-green-600 text-white font-bold py-4 rounded-xl text-lg transition-all transform hover:scale-[1.02] shadow-lg shadow-primary/30 flex items-center justify-center gap-2"
           >
-            Continue to Order
+            Continue to Order{selectedAddons.length > 0 ? ` ($${service.price + (service.addons || []).filter(a => selectedAddons.includes(a._id)).reduce((s, a) => s + a.price, 0)})` : ''}
           </button>
         </motion.div>
       </div>

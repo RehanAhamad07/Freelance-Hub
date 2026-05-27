@@ -3,8 +3,9 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { AuthContext } from '../context/AuthContext';
 import { motion } from 'framer-motion';
-import { Mail, Phone, GraduationCap, MapPin, Star, Briefcase, ChevronRight, MessageSquare, Edit2, X, Save, Camera } from 'lucide-react';
+import { Mail, Phone, GraduationCap, MapPin, Star, Briefcase, ChevronRight, MessageSquare, Edit2, X, Save, Camera, CheckCircle, Award, Plus, ExternalLink, Layers } from 'lucide-react';
 import { toast } from 'react-toastify';
+import ProfileThemeCustomizer from '../components/ProfileThemeCustomizer';
 
 const Profile = () => {
   const { id } = useParams();
@@ -14,6 +15,13 @@ const Profile = () => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const fileInputRef = useRef(null);
+
+  // Trust & Verification States
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [verificationUrl, setVerificationUrl] = useState('');
+  const [activeTab, setActiveTab] = useState('about'); // 'about' or 'portfolio'
+  const [portfolioForm, setPortfolioForm] = useState({ title: '', link: '', description: '', mediaUrl: '' });
+  const [showPortfolioModal, setShowPortfolioModal] = useState(false);
 
   // Edit Mode States
   const [isEditing, setIsEditing] = useState(false);
@@ -48,6 +56,37 @@ const Profile = () => {
     };
     fetchProfileData();
   }, [id, navigate]);
+
+  const handleVerificationSubmit = async (e) => {
+    e.preventDefault();
+    if (!verificationUrl.trim()) return toast.error('Please enter a valid document or portfolio URL');
+    try {
+      const res = await api.post('/auth/verification/request', { documentUrl: verificationUrl });
+      setProfile(res.data.user || res.data);
+      setShowVerificationModal(false);
+      setVerificationUrl('');
+      toast.success('Verification request submitted successfully!');
+    } catch (error) {
+      toast.error(error.response?.data?.error || 'Failed to submit verification request');
+    }
+  };
+
+  const handlePortfolioSubmit = async (e) => {
+    e.preventDefault();
+    if (!portfolioForm.title.trim() || !portfolioForm.link.trim()) {
+      return toast.error('Please fill in the project title and link');
+    }
+    try {
+      const updatedItems = [...(profile.portfolioItems || []), portfolioForm];
+      const res = await api.put('/auth/profile', { portfolioItems: updatedItems });
+      setProfile(res.data);
+      setShowPortfolioModal(false);
+      setPortfolioForm({ title: '', link: '', description: '', mediaUrl: '' });
+      toast.success('Portfolio item added successfully!');
+    } catch (error) {
+      toast.error('Failed to add portfolio item');
+    }
+  };
 
   const handleMessageClick = async () => {
     if (!user) {
@@ -126,8 +165,19 @@ const Profile = () => {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-800 p-8 sm:p-12 mb-12 overflow-hidden relative"
+          className="rounded-2xl shadow-lg border border-gray-200 dark:border-gray-800 p-8 sm:p-12 mb-12 overflow-hidden relative"
+          style={{
+            background: profile.headerBackground 
+              ? profile.headerBackground
+              : undefined
+          }}
         >
+          {!profile.headerBackground && (
+            <div className="absolute inset-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800"></div>
+          )}
+          {profile.headerBackground && (
+            <div className="absolute inset-0 bg-black/10"></div>
+          )}
           <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl"></div>
           <div className="relative">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-8">
@@ -150,11 +200,20 @@ const Profile = () => {
               {/* Profile Info */}
               <div className="flex-1">
                 <div className="flex flex-col gap-3 mb-6">
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-3">
                     <h1 className="text-4xl font-bold text-gray-900 dark:text-white">{profile.name}</h1>
-                    {isFreelancer && (
-                      <span className="px-4 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-xs font-bold uppercase tracking-wider">
-                        ✓ Verified
+                    {profile.verificationStatus === 'verified' ? (
+                      <span className="px-4 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1 border border-green-200 dark:border-green-800/40">
+                        <CheckCircle size={12} /> Verified Talent
+                      </span>
+                    ) : profile.verificationStatus === 'pending' ? (
+                      <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full text-xs font-bold uppercase tracking-wider">
+                        Verification Pending
+                      </span>
+                    ) : null}
+                    {profile.isTopRated && (
+                      <span className="px-4 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1 border border-amber-200 dark:border-amber-800/40">
+                        <Award size={12} /> Top Rated
                       </span>
                     )}
                   </div>
@@ -191,14 +250,31 @@ const Profile = () => {
                 {/* Action Buttons */}
                 <div className="flex flex-wrap gap-3">
                   {isOwnProfile ? (
-                    <motion.button 
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => setIsEditing(true)}
-                      className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-lg transition-all shadow-md hover:shadow-lg"
-                    >
-                      <Edit2 size={18} /> Edit Profile
-                    </motion.button>
+                    <>
+                      <motion.button 
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setIsEditing(true)}
+                        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-lg transition-all shadow-md hover:shadow-lg"
+                      >
+                        <Edit2 size={18} /> Edit Profile
+                      </motion.button>
+                      <ProfileThemeCustomizer 
+                        currentColor={profile.themeColor || '#3B82F6'}
+                        currentHeader={profile.headerBackground || ''}
+                        onUpdate={(theme) => setProfile({ ...profile, ...theme })}
+                      />
+                      {(!profile.verificationStatus || profile.verificationStatus === 'unverified' || profile.verificationStatus === 'rejected') && (
+                        <motion.button 
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => setShowVerificationModal(true)}
+                          className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded-lg transition-all shadow-md hover:shadow-lg"
+                        >
+                          <CheckCircle size={18} /> Get Verified
+                        </motion.button>
+                      )}
+                    </>
                   ) : (
                     <>
                       <motion.a 
@@ -226,6 +302,41 @@ const Profile = () => {
             </div>
           </div>
         </motion.div>
+
+        {isOwnProfile && profile.verificationStatus !== 'verified' && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`mb-8 p-6 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm ${
+              profile.verificationStatus === 'pending' 
+                ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-200'
+                : profile.verificationStatus === 'rejected'
+                ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-900 dark:text-red-200'
+                : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200'
+            }`}
+          >
+            <div>
+              <h4 className="font-bold text-lg flex items-center gap-2">
+                {profile.verificationStatus === 'pending' && '⏳ Verification Application Under Review'}
+                {profile.verificationStatus === 'rejected' && '❌ Verification Application Rejected'}
+                {(!profile.verificationStatus || profile.verificationStatus === 'unverified') && '🛡️ Unlock Premium Rates & Credibility'}
+              </h4>
+              <p className="text-sm mt-1 opacity-90">
+                {profile.verificationStatus === 'pending' && 'Our moderation team is currently reviewing your identity documents and submitted portfolio items. You will be notified soon.'}
+                {profile.verificationStatus === 'rejected' && 'Unfortunately, your previous application did not meet our verification criteria. Please ensure your provided document links are publicly accessible and valid.'}
+                {(!profile.verificationStatus || profile.verificationStatus === 'unverified') && 'Verified profiles command up to 3x higher conversion rates. Submit a government ID or valid portfolio credentials to earn your badge.'}
+              </p>
+            </div>
+            {profile.verificationStatus !== 'pending' && (
+              <button
+                onClick={() => setShowVerificationModal(true)}
+                className="px-5 py-2.5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-bold text-sm hover:opacity-90 transition flex-shrink-0 shadow"
+              >
+                Submit Evidence
+              </button>
+            )}
+          </motion.div>
+        )}
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
@@ -341,96 +452,218 @@ const Profile = () => {
           {/* Right Content */}
           <div className="lg:col-span-2 space-y-6">
             
-            {/* About Section */}
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-md border border-gray-200 dark:border-gray-800"
-            >
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">About</h3>
-              {profile.bio ? (
-                <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-lg whitespace-pre-wrap">{profile.bio}</p>
-              ) : (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
-                    <Mail size={32} className="text-gray-400" />
-                  </div>
-                  <p className="text-gray-500 dark:text-gray-400 font-medium">This user hasn't written a bio yet</p>
-                </div>
-              )}
-            </motion.div>
+            {/* Tabs Selector */}
+            <div className="flex border-b border-gray-200 dark:border-gray-800 gap-8 px-2">
+              <button
+                onClick={() => setActiveTab('about')}
+                className={`pb-4 font-bold text-lg transition border-b-2 ${
+                  activeTab === 'about'
+                    ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                    : 'border-transparent text-gray-500 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                Overview & Gigs
+              </button>
+              <button
+                onClick={() => setActiveTab('portfolio')}
+                className={`pb-4 font-bold text-lg transition border-b-2 flex items-center gap-2 ${
+                  activeTab === 'portfolio'
+                    ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                    : 'border-transparent text-gray-500 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                <Layers size={18} />
+                Portfolio Showcase
+                <span className="ml-1 px-2 py-0.5 bg-gray-100 dark:bg-gray-800 text-xs rounded-full text-gray-600 dark:text-gray-400">
+                  {profile.portfolioItems?.length || 0}
+                </span>
+              </button>
+            </div>
 
-            {/* Active Gigs Section */}
-            {isFreelancer && (
+            {activeTab === 'about' ? (
+              <>
+                {/* About Section */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-md border border-gray-200 dark:border-gray-800"
+                >
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">About</h3>
+                  {profile.bio ? (
+                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-lg whitespace-pre-wrap">{profile.bio}</p>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-12 text-center">
+                      <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
+                        <Mail size={32} className="text-gray-400" />
+                      </div>
+                      <p className="text-gray-500 dark:text-gray-400 font-medium">This user hasn't written a bio yet</p>
+                    </div>
+                  )}
+                </motion.div>
+
+                {/* Active Gigs Section */}
+                {isFreelancer && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-md border border-gray-200 dark:border-gray-800"
+                  >
+                    <div className="flex items-center justify-between mb-8">
+                      <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Active Gigs</h3>
+                      <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-4 py-2 rounded-full font-bold text-sm">
+                        {services.length} {services.length === 1 ? 'Gig' : 'Gigs'}
+                      </span>
+                    </div>
+                    
+                    {services.length > 0 ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        {services.map(gig => (
+                          <motion.div
+                            key={gig._id}
+                            whileHover={{ y: -5 }}
+                            className="group"
+                          >
+                            <Link to={`/service/${gig._id}`} className="block h-full">
+                              <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:border-blue-400 dark:hover:border-blue-500 transition-all shadow-sm hover:shadow-lg h-full flex flex-col">
+                                
+                                {/* Gig Image */}
+                                <div className="aspect-video w-full bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center relative overflow-hidden">
+                                  {gig.image ? (
+                                    <img src={gig.image} alt={gig.title} className="w-full h-full object-cover group-hover:scale-110 transition duration-500" />
+                                  ) : (
+                                    <div className="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+                                      <Briefcase size={32} className="mb-2 opacity-50" />
+                                      <span className="text-xs font-bold uppercase tracking-widest">{gig.category}</span>
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Gig Info */}
+                                <div className="p-5 flex-1 flex flex-col justify-between">
+                                  <div>
+                                    <h4 className="font-bold text-gray-900 dark:text-white mb-3 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition">
+                                      {gig.title}
+                                    </h4>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-4">{gig.description}</p>
+                                  </div>
+
+                                  {/* Footer */}
+                                  <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
+                                    <div>
+                                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Starting at</p>
+                                      <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">${gig.price}</p>
+                                    </div>
+                                    <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white dark:group-hover:bg-blue-600 transition">
+                                      <ChevronRight size={20} />
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </Link>
+                          </motion.div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center py-16">
+                        <div className="w-20 h-20 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
+                          <Briefcase size={40} className="text-gray-400" />
+                        </div>
+                        <p className="text-gray-600 dark:text-gray-400 font-medium text-center">No active gigs yet</p>
+                        <p className="text-gray-500 dark:text-gray-500 text-sm mt-2">Start creating gigs to showcase your services</p>
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </>
+            ) : (
+              /* Portfolio Showcase Section */
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
                 className="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-md border border-gray-200 dark:border-gray-800"
               >
-                <div className="flex items-center justify-between mb-8">
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Active Gigs</h3>
-                  <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-4 py-2 rounded-full font-bold text-sm">
-                    {services.length} {services.length === 1 ? 'Gig' : 'Gigs'}
-                  </span>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Rich Media Portfolio</h3>
+                    <p className="text-sm text-gray-500 mt-1">Showcasing completed orders, Figma prototypes, code repos, and media</p>
+                  </div>
+                  {isOwnProfile && (
+                    <button
+                      onClick={() => setShowPortfolioModal(true)}
+                      className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2.5 rounded-xl text-sm transition shadow"
+                    >
+                      <Plus size={16} /> Add Project
+                    </button>
+                  )}
                 </div>
-                
-                {services.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    {services.map(gig => (
-                      <motion.div
-                        key={gig._id}
-                        whileHover={{ y: -5 }}
-                        className="group"
+
+                {profile.portfolioItems?.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {profile.portfolioItems.map((item, index) => (
+                      <motion.div 
+                        key={index}
+                        whileHover={{ y: -4 }}
+                        className="border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden bg-gray-50 dark:bg-gray-800/50 flex flex-col justify-between group"
                       >
-                        <Link to={`/service/${gig._id}`} className="block h-full">
-                          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:border-blue-400 dark:hover:border-blue-500 transition-all shadow-sm hover:shadow-lg h-full flex flex-col">
-                            
-                            {/* Gig Image */}
-                            <div className="aspect-video w-full bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center relative overflow-hidden">
-                              {gig.image ? (
-                                <img src={gig.image} alt={gig.title} className="w-full h-full object-cover group-hover:scale-110 transition duration-500" />
+                        <div>
+                          {item.mediaUrl ? (
+                            <div className="aspect-video w-full bg-gray-200 dark:bg-gray-800 overflow-hidden relative">
+                              {item.mediaUrl.includes('youtube.com') || item.mediaUrl.includes('youtu.be') ? (
+                                <iframe 
+                                  src={item.mediaUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')} 
+                                  className="w-full h-full"
+                                  allowFullScreen 
+                                  title={item.title}
+                                />
                               ) : (
-                                <div className="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
-                                  <Briefcase size={32} className="mb-2 opacity-50" />
-                                  <span className="text-xs font-bold uppercase tracking-widest">{gig.category}</span>
-                                </div>
+                                <img src={item.mediaUrl} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
                               )}
                             </div>
-
-                            {/* Gig Info */}
-                            <div className="p-5 flex-1 flex flex-col justify-between">
-                              <div>
-                                <h4 className="font-bold text-gray-900 dark:text-white mb-3 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition">
-                                  {gig.title}
-                                </h4>
-                                <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-4">{gig.description}</p>
-                              </div>
-
-                              {/* Footer */}
-                              <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
-                                <div>
-                                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Starting at</p>
-                                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">${gig.price}</p>
-                                </div>
-                                <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white dark:group-hover:bg-blue-600 transition">
-                                  <ChevronRight size={20} />
-                                </div>
-                              </div>
+                          ) : (
+                            <div className="aspect-video w-full bg-gradient-to-tr from-blue-600/10 to-purple-600/10 flex items-center justify-center border-b border-gray-200 dark:border-gray-800">
+                              <Layers size={36} className="text-blue-500 opacity-60" />
                             </div>
+                          )}
+                          <div className="p-5">
+                            <h4 className="font-bold text-lg text-gray-900 dark:text-white flex items-center gap-2 line-clamp-1">
+                              {item.title}
+                            </h4>
+                            {item.description && (
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 line-clamp-3">
+                                {item.description}
+                              </p>
+                            )}
                           </div>
-                        </Link>
+                        </div>
+                        <div className="p-5 pt-0">
+                          <a 
+                            href={item.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 text-sm font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                          >
+                            <ExternalLink size={14} /> View Live Project / Link
+                          </a>
+                        </div>
                       </motion.div>
                     ))}
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center py-16">
-                    <div className="w-20 h-20 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
-                      <Briefcase size={40} className="text-gray-400" />
+                  <div className="flex flex-col items-center justify-center py-16 text-center">
+                    <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4 text-gray-400">
+                      <Layers size={32} />
                     </div>
-                    <p className="text-gray-600 dark:text-gray-400 font-medium text-center">No active gigs yet</p>
-                    <p className="text-gray-500 dark:text-gray-500 text-sm mt-2">Start creating gigs to showcase your services</p>
+                    <p className="text-gray-600 dark:text-gray-400 font-medium">No portfolio items uploaded yet</p>
+                    {isOwnProfile && (
+                      <button
+                        onClick={() => setShowPortfolioModal(true)}
+                        className="mt-3 text-sm font-bold text-blue-600 hover:underline"
+                      >
+                        Upload your first project showcase
+                      </button>
+                    )}
                   </div>
                 )}
               </motion.div>
@@ -572,6 +805,144 @@ const Profile = () => {
                   className="flex items-center gap-2 bg-primary hover:bg-green-600 text-white font-bold px-8 py-3 rounded-xl transition shadow-lg shadow-primary/30"
                 >
                   <Save size={18} /> Save Settings
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Request Verification Modal */}
+      {showVerificationModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <motion.div 
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-md p-6 border border-gray-100 dark:border-gray-700 relative"
+          >
+            <button 
+              onClick={() => setShowVerificationModal(false)}
+              className="absolute top-4 right-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-full hover:bg-red-100 hover:text-red-500 transition text-gray-500"
+            >
+              <X size={18} />
+            </button>
+            <div className="text-center mb-6">
+              <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                <CheckCircle size={24} />
+              </div>
+              <h3 className="text-xl font-black text-gray-900 dark:text-white">Request Verification</h3>
+              <p className="text-xs text-gray-500 mt-1">Submit your verification document or portfolio evidence URL to earn the Verified Talent badge.</p>
+            </div>
+            <form onSubmit={handleVerificationSubmit} className="space-y-4">
+              <div>
+                <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block mb-1">Document / Proof URL</label>
+                <input 
+                  type="url" 
+                  required
+                  value={verificationUrl}
+                  onChange={(e) => setVerificationUrl(e.target.value)}
+                  placeholder="https://drive.google.com/file/d/... or figma.com/..."
+                  className="w-full bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-sm text-gray-900 dark:text-white"
+                />
+                <span className="text-[11px] text-gray-400 mt-1 block">Provide a public link to your photo ID, certificate, or professional profile.</span>
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button 
+                  type="button" 
+                  onClick={() => setShowVerificationModal(false)}
+                  className="px-4 py-2 font-bold text-xs text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition shadow"
+                >
+                  Submit Request
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Add Portfolio Item Modal */}
+      {showPortfolioModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <motion.div 
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-lg p-6 border border-gray-100 dark:border-gray-700 relative max-h-[90vh] overflow-y-auto"
+          >
+            <button 
+              onClick={() => setShowPortfolioModal(false)}
+              className="absolute top-4 right-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-full hover:bg-red-100 hover:text-red-500 transition text-gray-500"
+            >
+              <X size={18} />
+            </button>
+            <div className="mb-6">
+              <h3 className="text-xl font-black text-gray-900 dark:text-white flex items-center gap-2">
+                <Layers size={20} className="text-blue-600" /> Add Portfolio Project
+              </h3>
+              <p className="text-xs text-gray-500 mt-1">Showcase your best completed work, videos, or code prototypes.</p>
+            </div>
+            <form onSubmit={handlePortfolioSubmit} className="space-y-4">
+              <div>
+                <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block mb-1">Project Title *</label>
+                <input 
+                  type="text" 
+                  required
+                  value={portfolioForm.title}
+                  onChange={(e) => setPortfolioForm({...portfolioForm, title: e.target.value})}
+                  placeholder="e.g. E-Commerce Mobile App UI"
+                  className="w-full bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2.5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 text-sm text-gray-900 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block mb-1">Project/Live URL *</label>
+                <input 
+                  type="url" 
+                  required
+                  value={portfolioForm.link}
+                  onChange={(e) => setPortfolioForm({...portfolioForm, link: e.target.value})}
+                  placeholder="https://github.com/... or https://mydesign.com"
+                  className="w-full bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2.5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 text-sm text-gray-900 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block mb-1">Media URL (YouTube link or Image URL)</label>
+                <input 
+                  type="url" 
+                  value={portfolioForm.mediaUrl}
+                  onChange={(e) => setPortfolioForm({...portfolioForm, mediaUrl: e.target.value})}
+                  placeholder="https://youtube.com/watch?v=... or image link"
+                  className="w-full bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2.5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 text-sm text-gray-900 dark:text-white"
+                />
+                <span className="text-[11px] text-gray-400 mt-0.5 block">Embeds YouTube videos automatically or displays images natively.</span>
+              </div>
+              <div>
+                <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block mb-1">Description</label>
+                <textarea 
+                  value={portfolioForm.description}
+                  onChange={(e) => setPortfolioForm({...portfolioForm, description: e.target.value})}
+                  placeholder="Briefly describe your role, challenges, or technologies used..."
+                  rows={3}
+                  className="w-full bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2.5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 text-sm text-gray-900 dark:text-white"
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-2 border-t border-gray-100 dark:border-gray-700">
+                <button 
+                  type="button" 
+                  onClick={() => setShowPortfolioModal(false)}
+                  className="px-4 py-2 font-bold text-xs text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg transition shadow"
+                >
+                  Save Project
                 </button>
               </div>
             </form>

@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import io from 'socket.io-client';
 import { AuthContext } from './AuthContext';
-import { toast } from 'react-toastify';
+import { showToast } from '../services/toast.jsx';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 export const SocketContext = createContext();
@@ -24,10 +24,7 @@ export const SocketProvider = ({ children }) => {
       newSocket.on('receiveMessage', (message) => {
         console.log("Global Socket Received:", message, "Current Path:", location.pathname);
         if (!window.location.pathname.includes('/chat')) {
-          toast.info(`New Message from ${message.senderName}`, {
-             onClick: () => navigate('/chat'),
-             style: { cursor: 'pointer' }
-          });
+          showToast.info(`${message.senderName} sent you a message. Click to view`, 'New Message');
         }
       });
 

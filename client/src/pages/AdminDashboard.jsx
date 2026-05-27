@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { toast } from 'react-toastify';
+import { showToast } from '../services/toast.jsx';
 import api from '../services/api';
+import { Link } from 'react-router-dom';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('users');
@@ -11,6 +12,8 @@ const AdminDashboard = () => {
   const [banReason, setBanReason] = useState('');
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [resolutionState, setResolutionState] = useState({});
+  const [searchQuery, setSearchQuery] = useState('');
+  const [detailUser, setDetailUser] = useState(null);
 
   const loadUsers = async () => {
     const res = await api.get('/admin/users');
@@ -32,7 +35,7 @@ const AdminDashboard = () => {
     try {
       await Promise.all([loadUsers(), loadDisputes(), loadAnalytics()]);
     } catch (error) {
-      toast.error(error.response?.data?.error || 'Failed to load admin data');
+      showToast.error(error.response?.data?.error || 'Failed to load admin data', 'Error Loading Data');
     } finally {
       setLoading(false);
     }
@@ -46,22 +49,22 @@ const AdminDashboard = () => {
     if (!selectedUserId) return;
     try {
       await api.post(`/admin/users/${selectedUserId}/ban`, { reason: banReason });
-      toast.success('User banned');
+      showToast.success('User has been banned successfully', 'User Banned');
       setSelectedUserId(null);
       setBanReason('');
       await loadUsers();
     } catch (error) {
-      toast.error(error.response?.data?.error || 'Failed to ban user');
+      showToast.error(error.response?.data?.error || 'Failed to ban user', 'Error');
     }
   };
 
   const handleUnban = async (id) => {
     try {
       await api.post(`/admin/users/${id}/unban`);
-      toast.success('User unbanned');
+      showToast.success('User has been unbanned successfully', 'User Unbanned');
       await loadUsers();
     } catch (error) {
-      toast.error(error.response?.data?.error || 'Failed to unban user');
+      showToast.error(error.response?.data?.error || 'Failed to unban user', 'Error');
     }
   };
 
@@ -72,12 +75,28 @@ const AdminDashboard = () => {
         outcome: data.outcome,
         notes: data.notes
       });
-      toast.success('Dispute resolved');
+      showToast.success('Dispute has been resolved', 'Resolved');
       await Promise.all([loadDisputes(), loadAnalytics()]);
     } catch (error) {
-      toast.error(error.response?.data?.error || 'Failed to resolve dispute');
+      showToast.error(error.response?.data?.error || 'Failed to resolve dispute', 'Error');
     }
   };
+
+  const handleVerification = async (userId, status, isTopRated) => {
+    try {
+      const body = {};
+      if (status !== undefined) body.status = status;
+      if (isTopRated !== undefined) body.isTopRated = isTopRated;
+      await api.post(`/admin/users/${userId}/verification`, body);
+      showToast.success(`Verification updated successfully`, 'Updated');
+      await loadUsers();
+    } catch (error) {
+      showToast.error(error.response?.data?.error || 'Failed to update verification', 'Error');
+    }
+  };
+
+  const pendingVerifications = users.filter(u => u.verificationStatus === 'pending');
+  const allVerifiable = users.filter(u => u.verificationStatus && u.verificationStatus !== 'unverified');
 
   const formatCurrency = (value) => `$${Number(value || 0).toLocaleString()}`;
   const getFileUrl = (filePath) => {
@@ -97,66 +116,224 @@ const AdminDashboard = () => {
     return entry.actor?.name || 'User';
   };
 
+  const filteredUsers = users.filter(u =>
+    u.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    u.email?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 mt-8">
-      <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white rounded-2xl p-6 shadow-xl border border-gray-700">
-        <h1 className="text-3xl font-bold">Admin Portal</h1>
-        <p className="text-sm text-gray-300 mt-1">Manage users, resolve disputes, and monitor platform revenue.</p>
+      {/* Header */}
+      <div className="relative bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-8 shadow-2xl border border-indigo-500/20 overflow-hidden mb-8">
+        <div className="absolute top-0 right-0 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 w-56 h-56 bg-purple-500/10 rounded-full blur-3xl"></div>
+        <div className="relative z-10">
+          <h1 className="text-3xl font-black tracking-tight mb-1">🛡️ Admin Command Center</h1>
+          <p className="text-indigo-200 text-sm">Full platform oversight — users, disputes, verifications & revenue.</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
+            {[
+              { label: 'Total Users', val: users.length, c: 'text-blue-300' },
+              { label: 'Verified', val: users.filter(u => u.verificationStatus === 'verified').length, c: 'text-green-300' },
+              { label: 'Disputes', val: disputes.length, c: 'text-amber-300' },
+              { label: 'Revenue', val: formatCurrency(analytics?.totals?.platformRevenue || 0), c: 'text-emerald-300' },
+            ].map((s, i) => (
+              <div key={i} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4">
+                <p className={`text-2xl font-black ${s.c}`}>{s.val}</p>
+                <p className="text-xs text-indigo-300 mt-1">{s.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
-      <div className="flex gap-2 mt-6 mb-6 bg-white dark:bg-gray-800 rounded-xl p-2 border border-gray-200 dark:border-gray-700 shadow-sm w-fit">
-        <button onClick={() => setActiveTab('users')} className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${activeTab === 'users' ? 'bg-primary text-white shadow' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}>Users</button>
-        <button onClick={() => setActiveTab('disputes')} className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${activeTab === 'disputes' ? 'bg-primary text-white shadow' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}>Disputes</button>
-        <button onClick={() => setActiveTab('analytics')} className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${activeTab === 'analytics' ? 'bg-primary text-white shadow' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}>Revenue</button>
+      {/* Tabs */}
+      <div className="flex gap-1 mb-6 bg-white dark:bg-gray-800 rounded-2xl p-1.5 border border-gray-200 dark:border-gray-700 shadow-sm w-fit flex-wrap">
+        {[
+          { id: 'users', label: '👥 Users' },
+          { id: 'verifications', label: '🛡️ Verifications', badge: pendingVerifications.length },
+          { id: 'disputes', label: '⚠️ Disputes' },
+          { id: 'analytics', label: '💰 Revenue' },
+        ].map(tab => (
+          <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+            className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === tab.id ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}>
+            {tab.label}
+            {tab.badge > 0 && <span className="ml-1 px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full">{tab.badge}</span>}
+          </button>
+        ))}
       </div>
 
-      {loading ? <p className="text-sm text-gray-500 dark:text-gray-300 animate-pulse">Loading admin data...</p> : null}
+      {loading && <p className="text-sm text-indigo-500 mb-4 animate-pulse">⏳ Loading...</p>}
 
+      {/* USERS TAB */}
       {activeTab === 'users' && (
-        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-4 overflow-x-auto shadow-sm">
-          <table className="w-full text-left min-w-[700px]">
-            <thead>
-              <tr className="border-b border-gray-200 dark:border-gray-700 text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                <th className="py-3">Name</th>
-                <th>Email</th>
-                <th>Roles</th>
-                <th>Status</th>
-                <th className="text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((u) => (
-                <tr key={u._id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition">
-                  <td className="py-3 font-medium text-gray-800 dark:text-gray-100">{u.name}</td>
-                  <td className="text-gray-600 dark:text-gray-300">{u.email}</td>
-                  <td className="text-gray-600 dark:text-gray-300">{(u.roles || []).join(', ')}</td>
-                  <td>
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${u.isBanned ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'}`}>
-                      {u.isBanned ? 'Banned' : 'Active'}
-                    </span>
-                  </td>
-                  <td className="text-right">
-                    {u.isBanned ? (
-                      <button onClick={() => handleUnban(u._id)} className="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-lg text-xs font-semibold transition">Unban</button>
-                    ) : (
-                      <button onClick={() => setSelectedUserId(u._id)} className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg text-xs font-semibold transition">Ban</button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="space-y-4">
+          <div className="relative max-w-md">
+            <input type="text" placeholder="Search users by name or email..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm" />
+            <span className="absolute left-3 top-3.5 text-gray-400">🔍</span>
+          </div>
+
+          <div className="grid gap-3">
+            {filteredUsers.map(u => (
+              <div key={u._id} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-5 shadow-sm hover:shadow-md transition-all flex flex-col sm:flex-row sm:items-center gap-4">
+                <div className="flex-shrink-0">
+                  {u.profilePicture ? (
+                    <img src={u.profilePicture} alt={u.name} className="w-14 h-14 rounded-xl object-cover border-2 border-gray-200 dark:border-gray-700" />
+                  ) : (
+                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-black text-xl">{u.name?.charAt(0)?.toUpperCase()}</div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-bold text-gray-900 dark:text-white">{u.name}</h3>
+                    {u.verificationStatus === 'verified' && <span className="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full text-[10px] font-bold">✓ VERIFIED</span>}
+                    {u.isTopRated && <span className="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-full text-[10px] font-bold">⭐ TOP</span>}
+                    {u.isBanned && <span className="px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-full text-[10px] font-bold">🚫 BANNED</span>}
+                  </div>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{u.email}</p>
+                  <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
+                    <span>📋 {(u.roles || []).join(', ')}</span>
+                    {u.country && <span>📍 {u.country}</span>}
+                    <span>⭐ {(u.rating || 0).toFixed(1)}</span>
+                    <span>💼 {u.completedJobs || 0} jobs</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <button onClick={() => setDetailUser(u)} className="px-3 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-lg text-xs font-bold hover:bg-indigo-100 transition">👁 Details</button>
+                  <Link to={`/profile/${u._id}`} className="px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg text-xs font-bold hover:bg-blue-100 transition">↗ Profile</Link>
+                  {u.isBanned ? (
+                    <button onClick={() => handleUnban(u._id)} className="px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-xs font-bold transition">Unban</button>
+                  ) : (
+                    <button onClick={() => setSelectedUserId(u._id)} className="px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-xs font-bold transition">Ban</button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {filteredUsers.length === 0 && <p className="text-center py-8 text-gray-400">No users match your search.</p>}
 
           {selectedUserId && (
-            <div className="mt-4 p-4 border border-red-200 dark:border-red-800/50 rounded-xl bg-red-50/70 dark:bg-red-900/10">
+            <div className="p-4 border border-red-200 dark:border-red-800/50 rounded-xl bg-red-50/70 dark:bg-red-900/10">
               <p className="font-semibold mb-2 text-red-700 dark:text-red-300">Ban reason</p>
               <textarea className="w-full border border-gray-300 dark:border-gray-700 rounded-lg p-2.5 bg-white dark:bg-gray-900 outline-none focus:ring-2 focus:ring-red-400" value={banReason} onChange={(e) => setBanReason(e.target.value)} />
               <div className="flex gap-2 mt-2">
                 <button onClick={handleBan} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold transition">Confirm Ban</button>
-                <button onClick={() => { setSelectedUserId(null); setBanReason(''); }} className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-300 dark:hover:bg-gray-600 transition">Cancel</button>
+                <button onClick={() => { setSelectedUserId(null); setBanReason(''); }} className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg text-sm font-semibold transition">Cancel</button>
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {activeTab === 'verifications' && (
+        <div className="space-y-6">
+          {/* Pending Queue */}
+          <div>
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+              ⏳ Pending Verification Requests
+              <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-xs font-bold">{pendingVerifications.length}</span>
+            </h2>
+            {pendingVerifications.length === 0 ? (
+              <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-8 text-center text-gray-500">No pending verification requests.</div>
+            ) : (
+              <div className="space-y-3">
+                {pendingVerifications.map(u => (
+                  <div key={u._id} className="bg-white dark:bg-gray-800 rounded-2xl border border-blue-200 dark:border-blue-800/50 p-5 shadow-sm">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <p className="font-bold text-gray-900 dark:text-white text-lg">{u.name}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{u.email} · {(u.roles || []).join(', ')}</p>
+                      </div>
+                      <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-xs font-bold uppercase tracking-wider">Pending Review</span>
+                    </div>
+                    {u.verificationDocument && (
+                      <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-700">
+                        <p className="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1">Submitted Document</p>
+                        <a href={u.verificationDocument} target="_blank" rel="noreferrer" className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline font-semibold break-all">
+                          {u.verificationDocument}
+                        </a>
+                      </div>
+                    )}
+                    <div className="flex gap-2 mt-4">
+                      <button onClick={() => handleVerification(u._id, 'verified')} className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-semibold transition">✓ Approve</button>
+                      <button onClick={() => handleVerification(u._id, 'rejected')} className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-semibold transition">✗ Reject</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* All Verifications Table */}
+          <div>
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-3">All Verification Statuses</h2>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-4 overflow-x-auto shadow-sm">
+              <table className="w-full text-left min-w-[700px]">
+                <thead>
+                  <tr className="border-b border-gray-200 dark:border-gray-700 text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                    <th className="py-3">Name</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Top Rated</th>
+                    <th>Document</th>
+                    <th className="text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {allVerifiable.map(u => (
+                    <tr key={u._id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition">
+                      <td className="py-3 font-medium text-gray-800 dark:text-gray-100">{u.name}</td>
+                      <td className="text-gray-600 dark:text-gray-300 text-sm">{u.email}</td>
+                      <td>
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${u.verificationStatus === 'verified' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' :
+                            u.verificationStatus === 'pending' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' :
+                              u.verificationStatus === 'rejected' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' :
+                                'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
+                          }`}>
+                          {u.verificationStatus}
+                        </span>
+                      </td>
+                      <td>
+                        <button
+                          onClick={() => handleVerification(u._id, undefined, !u.isTopRated)}
+                          className={`px-2.5 py-1 rounded-full text-xs font-bold transition ${u.isTopRated
+                              ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 hover:bg-amber-200'
+                              : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400 hover:bg-gray-200'
+                            }`}
+                        >
+                          {u.isTopRated ? '⭐ Top Rated' : 'Not Rated'}
+                        </button>
+                      </td>
+                      <td>
+                        {u.verificationDocument ? (
+                          <a href={u.verificationDocument} target="_blank" rel="noreferrer" className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-semibold">View Doc</a>
+                        ) : (
+                          <span className="text-xs text-gray-400">—</span>
+                        )}
+                      </td>
+                      <td className="text-right">
+                        <div className="flex gap-1 justify-end">
+                          {u.verificationStatus !== 'verified' && (
+                            <button onClick={() => handleVerification(u._id, 'verified')} className="px-2.5 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-xs font-semibold transition">Approve</button>
+                          )}
+                          {u.verificationStatus !== 'rejected' && u.verificationStatus !== 'unverified' && (
+                            <button onClick={() => handleVerification(u._id, 'rejected')} className="px-2.5 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-xs font-semibold transition">Reject</button>
+                          )}
+                          {u.verificationStatus === 'verified' && (
+                            <button onClick={() => handleVerification(u._id, 'unverified')} className="px-2.5 py-1 bg-gray-400 hover:bg-gray-500 text-white rounded text-xs font-semibold transition">Revoke</button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {allVerifiable.length === 0 && (
+                <p className="text-center py-8 text-gray-500">No users have submitted verification requests yet.</p>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
@@ -295,8 +472,109 @@ const AdminDashboard = () => {
           </div>
         </div>
       )}
+      {/* USER DETAIL DRAWER */}
+      {detailUser && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex justify-end" onClick={() => setDetailUser(null)}>
+          <div className="bg-white dark:bg-gray-900 w-full max-w-lg h-full overflow-y-auto shadow-2xl animate-slideIn" onClick={e => e.stopPropagation()}>
+            {/* Detail Header */}
+            <div className="relative bg-gradient-to-br from-indigo-600 to-purple-700 p-6 text-white">
+              <button onClick={() => setDetailUser(null)} className="absolute top-4 right-4 p-1.5 bg-white/20 rounded-lg hover:bg-white/30 transition text-white text-lg">✕</button>
+              <div className="flex items-center gap-4 mt-2">
+                {detailUser.profilePicture ? (
+                  <img src={detailUser.profilePicture} alt="" className="w-20 h-20 rounded-2xl object-cover border-3 border-white/30" />
+                ) : (
+                  <div className="w-20 h-20 rounded-2xl bg-white/20 flex items-center justify-center text-3xl font-black">{detailUser.name?.charAt(0)}</div>
+                )}
+                <div>
+                  <h2 className="text-2xl font-black">{detailUser.name}</h2>
+                  <p className="text-indigo-200 text-sm">{detailUser.email}</p>
+                  <div className="flex gap-2 mt-2">
+                    {detailUser.verificationStatus === 'verified' && <span className="px-2 py-0.5 bg-green-400/20 text-green-200 rounded-full text-[10px] font-bold">✓ Verified</span>}
+                    {detailUser.isTopRated && <span className="px-2 py-0.5 bg-amber-400/20 text-amber-200 rounded-full text-[10px] font-bold">⭐ Top Rated</span>}
+                    {detailUser.isBanned && <span className="px-2 py-0.5 bg-red-400/20 text-red-200 rounded-full text-[10px] font-bold">🚫 Banned</span>}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Detail Body */}
+            <div className="p-6 space-y-5">
+              <Link to={`/profile/${detailUser._id}`} onClick={() => setDetailUser(null)} className="w-full block text-center px-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold rounded-xl hover:shadow-lg transition">↗ Visit Full Profile Page</Link>
+
+              {/* Info Grid */}
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { label: 'Roles', val: (detailUser.roles || []).join(', ') },
+                  { label: 'Country', val: detailUser.country || '—' },
+                  { label: 'Phone', val: detailUser.phone || '—' },
+                  { label: 'Rating', val: `⭐ ${(detailUser.rating || 0).toFixed(1)}` },
+                  { label: 'Completed Jobs', val: detailUser.completedJobs || 0 },
+                  { label: 'Wallet Balance', val: `$${(detailUser.walletBalance || 0).toLocaleString()}` },
+                  { label: 'Verification', val: detailUser.verificationStatus || 'unverified' },
+                  { label: 'Joined', val: detailUser.createdAt ? new Date(detailUser.createdAt).toLocaleDateString() : '—' },
+                ].map((item, i) => (
+                  <div key={i} className="bg-gray-50 dark:bg-gray-800 rounded-xl p-3 border border-gray-100 dark:border-gray-700">
+                    <p className="text-[10px] uppercase tracking-wider text-gray-400 font-bold">{item.label}</p>
+                    <p className="text-sm font-bold text-gray-900 dark:text-white mt-0.5">{item.val}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Bio */}
+              <div>
+                <p className="text-xs uppercase tracking-wider text-gray-400 font-bold mb-1">Bio</p>
+                <p className="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 rounded-xl p-3 border border-gray-100 dark:border-gray-700">{detailUser.bio || 'No bio provided.'}</p>
+              </div>
+
+              {/* Skills */}
+              {detailUser.skills?.length > 0 && (
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-gray-400 font-bold mb-2">Skills</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {detailUser.skills.map((s, i) => (
+                      <span key={i} className="px-2.5 py-1 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 rounded-lg text-xs font-semibold">{s}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Languages */}
+              {detailUser.languages?.length > 0 && (
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-gray-400 font-bold mb-2">Languages</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {detailUser.languages.map((l, i) => (
+                      <span key={i} className="px-2.5 py-1 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded-lg text-xs font-semibold">{l}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Education */}
+              {detailUser.education?.length > 0 && (
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-gray-400 font-bold mb-2">Education</p>
+                  {detailUser.education.map((e, i) => (
+                    <p key={i} className="text-sm text-gray-700 dark:text-gray-300">🎓 {e}</p>
+                  ))}
+                </div>
+              )}
+
+              {/* Banned Info */}
+              {detailUser.isBanned && (
+                <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800/50 rounded-xl p-4">
+                  <p className="text-xs uppercase tracking-wider text-red-500 font-bold mb-1">Ban Details</p>
+                  <p className="text-sm text-red-700 dark:text-red-300">Reason: {detailUser.bannedReason || 'No reason specified'}</p>
+                  {detailUser.bannedAt && <p className="text-xs text-red-400 mt-1">Banned on: {new Date(detailUser.bannedAt).toLocaleDateString()}</p>}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 export default AdminDashboard;
+

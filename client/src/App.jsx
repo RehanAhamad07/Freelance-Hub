@@ -4,6 +4,7 @@ import { SocketProvider } from './context/SocketContext';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import './styles/toast.css';
 
 // Components
 import Navbar from './components/Navbar';
@@ -57,7 +58,20 @@ function App() {
                 <Route path="/admin" element={<ProtectedRoute adminOnly><AdminDashboard /></ProtectedRoute>} />
               </Routes>
             </div>
-            <ToastContainer position="bottom-right" />
+            <ToastContainer 
+              position="top-right"
+              autoClose={3000}
+              hideProgressBar={false}
+              newestOnTop={true}
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss={false}
+              draggable
+              pauseOnHover
+              theme="colored"
+              limit={3}
+              stacked={false}
+            />
           </div>
         </SocketProvider>
       </AuthProvider>

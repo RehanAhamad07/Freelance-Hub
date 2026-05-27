@@ -3,7 +3,7 @@ import api from '../services/api';
 import { AuthContext } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
-import { Star, Search as SearchIcon, Zap, Code, PenTool, Video, Pen, Music, MoreHorizontal, X, Filter, CheckCircle, Heart, MessageCircle } from 'lucide-react';
+import { Star, Search as SearchIcon, Zap, Code, PenTool, Video, Pen, Music, MoreHorizontal, X, Filter, CheckCircle, Heart, MessageCircle, Award } from 'lucide-react';
 
 const categoryIcons = {
   'Programming & Tech': Code,
@@ -383,9 +383,19 @@ const ServicesListing = () => {
                               <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
                                 {service.freelancer?.name || 'Freelancer'}
                               </p>
-                              <div className="flex items-center gap-2">
-                                <CheckCircle size={14} className="text-green-500 flex-shrink-0" />
-                                <span className="text-xs text-gray-600 dark:text-gray-400">Verified Seller</span>
+                              <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+                                {service.freelancer?.verificationStatus === 'verified' ? (
+                                  <span className="text-[10px] bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 font-bold px-1.5 py-0.2 rounded border border-green-200 dark:border-green-800/40 flex items-center gap-0.5 whitespace-nowrap">
+                                    <CheckCircle size={9} /> Verified Seller
+                                  </span>
+                                ) : (
+                                  <span className="text-xs text-gray-500 dark:text-gray-400">Seller</span>
+                                )}
+                                {service.freelancer?.isTopRated && (
+                                  <span className="text-[10px] bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 font-bold px-1.5 py-0.2 rounded border border-amber-200 dark:border-amber-800/40 flex items-center gap-0.5 whitespace-nowrap">
+                                    <Award size={9} /> Top Rated
+                                  </span>
+                                )}
                               </div>
                             </div>
                           </div>

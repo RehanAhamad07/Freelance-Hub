@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect } from 'react';
 import api from '../services/api';
-import { toast } from 'react-toastify';
+import { showToast } from '../services/toast.jsx';
 
 export const AuthContext = createContext();
 
@@ -38,10 +38,10 @@ export const AuthProvider = ({ children }) => {
       const res = await api.post('/auth/login', { email, password });
       localStorage.setItem('token', res.data.token);
       setUser(res.data.user);
-      toast.success('Login Successful!');
+      showToast.success('You have been successfully logged in', 'Login Successful');
       return true;
     } catch (error) {
-      toast.error(error.response?.data?.error || 'Login failed');
+      showToast.error(error.response?.data?.error || 'Login failed', 'Authentication Error');
       return false;
     }
   };
@@ -51,10 +51,10 @@ export const AuthProvider = ({ children }) => {
       const res = await api.post('/auth/register', { name, email, password });
       localStorage.setItem('token', res.data.token);
       setUser(res.data.user);
-      toast.success('Registration Successful!');
+      showToast.success('Your account has been created successfully', 'Registration Complete');
       return true;
     } catch (error) {
-      toast.error(error.response?.data?.error || 'Registration failed');
+      showToast.error(error.response?.data?.error || 'Registration failed', 'Registration Error');
       return false;
     }
   };
@@ -62,7 +62,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
-    toast.info('Logged out');
+    showToast.info('You have been logged out successfully', 'Goodbye');
   };
 
   const googleLogin = async (credential) => {
@@ -70,43 +70,45 @@ export const AuthProvider = ({ children }) => {
       const res = await api.post('/auth/google', { credential });
       localStorage.setItem('token', res.data.token);
       setUser(res.data.user);
-      toast.success('Google Login Successful!');
+      showToast.success('Welcome back! You have been logged in with Google', 'Login Successful');
       return true;
     } catch (error) {
-      toast.error(error.response?.data?.error || 'Google login failed');
+      showToast.error(error.response?.data?.error || 'Google login failed', 'Authentication Error');
       return false;
     }
   };
 
   const toggleSavedService = async (serviceId) => {
-    if (!user) return toast.error('Please login to save services');
+    if (!user) return showToast.warning('Please login to save services', 'Login Required');
     try {
       const res = await api.post(`/auth/save-service/${serviceId}`);
       setUser({ ...user, savedServices: res.data.savedServices });
+      showToast.success('Service has been added to your favorites', 'Saved');
     } catch (error) {
       console.error('Failed to update saved services:', error.response?.data || error);
-      toast.error('Failed to update saved services');
+      showToast.error('Failed to save service. Please try again', 'Error');
     }
   };
 
   const toggleSavedJob = async (jobId) => {
-    if (!user) return toast.error('Please login to save jobs');
+    if (!user) return showToast.warning('Please login to save jobs', 'Login Required');
     try {
       const res = await api.post(`/auth/save-job/${jobId}`);
       setUser({ ...user, savedJobs: res.data.savedJobs });
+      showToast.success('Job has been added to your favorites', 'Saved');
     } catch (error) {
       console.error('Failed to update saved jobs:', error.response?.data || error);
-      toast.error('Failed to update saved jobs');
+      showToast.error('Failed to save job. Please try again', 'Error');
     }
   };
 
   const forgotPassword = async (email) => {
     try {
       const res = await api.post('/auth/forgot-password', { email });
-      toast.success(res.data.message || 'OTP sent to your email');
+      showToast.success(res.data.message || 'OTP sent to your email', 'Email Sent');
       return true;
     } catch (error) {
-      toast.error(error.response?.data?.error || 'Failed to send OTP');
+      showToast.error(error.response?.data?.error || 'Failed to send OTP', 'Error');
       return false;
     }
   };
@@ -114,10 +116,10 @@ export const AuthProvider = ({ children }) => {
   const resetPassword = async (email, otp, newPassword) => {
     try {
       const res = await api.post('/auth/reset-password', { email, otp, newPassword });
-      toast.success(res.data.message || 'Password reset successfully');
+      showToast.success(res.data.message || 'Password reset successfully', 'Success');
       return true;
     } catch (error) {
-      toast.error(error.response?.data?.error || 'Failed to reset password');
+      showToast.error(error.response?.data?.error || 'Failed to reset password', 'Error');
       return false;
     }
   };

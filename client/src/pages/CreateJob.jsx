@@ -6,7 +6,7 @@ import { toast } from 'react-toastify';
 import { AuthContext } from '../context/AuthContext';
 import { 
   Briefcase, Type, AlignLeft, Tags, Clock, Send, Sparkles, ChevronDown,
-  Code, PenTool, Video, Pen, Music, MoreHorizontal 
+  Code, PenTool, Video, Pen, Music, MoreHorizontal, Wand2, Loader2
 } from 'lucide-react';
 
 const currencySymbols = {
@@ -46,6 +46,7 @@ const CreateJob = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -75,6 +76,29 @@ const CreateJob = () => {
     } catch (error) {
       toast.error(error.response?.data?.error || 'Failed to post job');
       setIsSubmitting(false);
+    }
+  };
+
+  const handleAIDescription = async () => {
+    if (!formData.title.trim()) {
+      toast.info('Please enter a job title first so AI can generate a relevant description');
+      return;
+    }
+    setAiLoading(true);
+    try {
+      const res = await api.post('/ai/generate-description', {
+        title: formData.title,
+        category: formData.category.name,
+        skills: formData.skills.split(',').map(s => s.trim()).filter(Boolean),
+        budget: formData.budget,
+        deliveryTime: formData.deliveryTime
+      });
+      setFormData({ ...formData, description: res.data.description });
+      toast.success('AI description generated! Feel free to edit it.');
+    } catch (error) {
+      toast.error(error.response?.data?.error || 'Failed to generate description. Check your API key.');
+    } finally {
+      setAiLoading(false);
     }
   };
 
@@ -185,7 +209,18 @@ const CreateJob = () => {
 
               {/* Description */}
               <div className="col-span-1 md:col-span-2 group">
-                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 ml-1">Comprehensive Description</label>
+                <div className="flex items-center justify-between mb-2 ml-1">
+                  <label className="block text-sm font-bold text-gray-700 dark:text-gray-300">Comprehensive Description</label>
+                  <button
+                    type="button"
+                    onClick={handleAIDescription}
+                    disabled={aiLoading}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white text-xs font-bold rounded-lg transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {aiLoading ? <Loader2 size={13} className="animate-spin" /> : <Wand2 size={13} />}
+                    {aiLoading ? 'Generating...' : '✨ AI Generate'}
+                  </button>
+                </div>
                 <div className={`relative flex items-start rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-800/50 border-2 border-transparent transition-all duration-300 ${formData.category.border} group-focus-within:shadow-lg`}>
                   <div className="pl-5 pt-5 flex items-center pointer-events-none">
                     <AlignLeft size={20} className="text-gray-400 group-focus-within:text-gray-700 dark:group-focus-within:text-gray-300 transition-colors" />

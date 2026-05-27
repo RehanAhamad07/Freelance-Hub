@@ -45,6 +45,8 @@ const CreateService = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const [addons, setAddons] = useState([]);
+  const [newAddon, setNewAddon] = useState({ title: '', price: '', description: '' });
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -75,7 +77,8 @@ const CreateService = () => {
     try {
       const payload = {
         ...formData,
-        category: formData.category.name
+        category: formData.category.name,
+        addons: addons.map(a => ({ title: a.title, price: Number(a.price), description: a.description })),
       };
       await api.post('/services', payload);
       toast.success('Service created successfully!');
@@ -270,6 +273,33 @@ const CreateService = () => {
                     className="w-full bg-transparent pl-4 pr-5 py-4 text-gray-900 dark:text-white placeholder-gray-400 outline-none font-bold text-xl"
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* Add-ons Builder */}
+            <div className="pt-4">
+              <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 ml-1">💎 Service Add-ons (Upsells)</label>
+              <div className="space-y-2 mb-3">
+                {addons.map((addon, i) => (
+                  <div key={i} className="flex items-center gap-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl p-3 border border-gray-200 dark:border-gray-600">
+                    <div className="flex-1">
+                      <p className="font-bold text-sm text-gray-900 dark:text-white">{addon.title}</p>
+                      {addon.description && <p className="text-xs text-gray-500">{addon.description}</p>}
+                    </div>
+                    <span className="text-sm font-black text-green-600">+${addon.price}</span>
+                    <button type="button" onClick={() => setAddons(addons.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600 text-sm font-bold">✕</button>
+                  </div>
+                ))}
+              </div>
+              <div className="grid grid-cols-12 gap-2">
+                <input type="text" placeholder="Add-on title (e.g., Source Files)" value={newAddon.title} onChange={e => setNewAddon({...newAddon, title: e.target.value})}
+                  className="col-span-5 bg-gray-50 dark:bg-gray-700/50 rounded-xl px-3 py-2.5 text-sm border border-gray-200 dark:border-gray-600 outline-none focus:ring-2 focus:ring-indigo-500" />
+                <input type="number" placeholder="Price" value={newAddon.price} onChange={e => setNewAddon({...newAddon, price: e.target.value})}
+                  className="col-span-2 bg-gray-50 dark:bg-gray-700/50 rounded-xl px-3 py-2.5 text-sm border border-gray-200 dark:border-gray-600 outline-none focus:ring-2 focus:ring-indigo-500" />
+                <input type="text" placeholder="Description (optional)" value={newAddon.description} onChange={e => setNewAddon({...newAddon, description: e.target.value})}
+                  className="col-span-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl px-3 py-2.5 text-sm border border-gray-200 dark:border-gray-600 outline-none focus:ring-2 focus:ring-indigo-500" />
+                <button type="button" onClick={() => { if (newAddon.title && newAddon.price) { setAddons([...addons, newAddon]); setNewAddon({title:'', price:'', description:''}); } }}
+                  className="col-span-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition">+ Add</button>
               </div>
             </div>
 

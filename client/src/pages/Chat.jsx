@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { SocketContext } from '../context/SocketContext';
 import { AuthContext } from '../context/AuthContext';
 import api from '../services/api';
+import { showToast } from '../services/toast.jsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, User as UserIcon, Image as ImageIcon, Smile, MoreVertical, Mic, Square, Play, Pause } from 'lucide-react';
 
@@ -74,16 +75,20 @@ const Chat = () => {
   const { socket } = useContext(SocketContext);
   const { user } = useContext(AuthContext);
   const location = useLocation();
+  const navigate = useNavigate();
   const [conversations, setConversations] = useState([]);
   const [currentChat, setCurrentChat] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showChatMenu, setShowChatMenu] = useState(false);
   const scrollRef = useRef();
   const fileInputRef = useRef();
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
+  const menuRef = useRef(null);
 
   const userId = String(user?.id || user?._id);
 
@@ -135,6 +140,17 @@ const Chat = () => {
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setShowChatMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Handle Voice Recording
   const handleStartRecording = async () => {
@@ -225,6 +241,90 @@ const Chat = () => {
     return currentChat?.participants.find((p) => String(p._id || p) === String(senderId)) || {};
   };
 
+  // Filter conversations based on search query
+  const filteredConversations = conversations.filter(c => {
+    const otherUser = c.participants.find(p => String(p._id || p) !== userId);
+    const name = otherUser?.name || 'Unknown User';
+    return name.toLowerCase().includes(searchQuery.toLowerCase());
+  });
+
+  // Handle menu actions
+  const handleClearConversation = async () => {
+    if (window.confirm('Are you sure you want to clear this conversation? This cannot be undone.')) {
+      try {
+        await api.delete(`/chat/${currentChat._id}/clear`);
+        setMessages([]);
+        setShowChatMenu(false);
+        showToast.success('All messages have been removed', 'Conversation Cleared');
+      } catch (error) {
+        showToast.error(error.response?.data?.error || 'Failed to clear conversation', 'Error');
+      }
+    }
+  };
+
+  const handleBlockUser = async () => {
+    if (window.confirm('Block this user? You won\'t see their messages.')) {
+      try {
+        const otherUser = currentChat.participants.find(p => String(p._id || p) !== userId);
+        await api.post('/chat/block', { userToBlockId: otherUser._id });
+        setShowChatMenu(false);
+        showToast.success(`${otherUser.name} has been blocked`, 'User Blocked');
+        // Remove conversation from list after 1 second
+        setTimeout(() => {
+          setConversations(conversations.filter(c => c._id !== currentChat._id));
+          setCurrentChat(null);
+        }, 1000);
+      } catch (error) {
+        showToast.error(error.response?.data?.error || 'Failed to block user', 'Error');
+      }
+    }
+  };
+
+  const handleMuteNotifications = async () => {
+    try {
+      await api.post('/chat/mute', { conversationId: currentChat._id });
+      setShowChatMenu(false);
+      showToast.success('Notifications muted for this conversation', 'Muted');
+    } catch (error) {
+      showToast.error(error.response?.data?.error || 'Failed to mute notifications', 'Error');
+    }
+  };
+
+  const handleReportUser = async () => {
+    const reason = prompt('Select reason:\n1. harassment\n2. abuse\n3. spam\n4. fraud\n5. other\n\nEnter number (1-5):');
+    if (!reason) return;
+
+    const reasonMap = { '1': 'harassment', '2': 'abuse', '3': 'spam', '4': 'fraud', '5': 'other' };
+    const selectedReason = reasonMap[reason];
+
+    if (!selectedReason) {
+      showToast.error('Invalid reason selected', 'Invalid Selection');
+      return;
+    }
+
+    const description = prompt('Provide additional details (optional):');
+
+    try {
+      const otherUser = currentChat.participants.find(p => String(p._id || p) !== userId);
+      await api.post('/chat/report', {
+        reportedUserId: otherUser._id,
+        conversationId: currentChat._id,
+        reason: selectedReason,
+        description: description || ''
+      });
+      setShowChatMenu(false);
+      showToast.success('Thank you for helping keep our community safe', 'User Reported');
+    } catch (error) {
+      showToast.error(error.response?.data?.error || 'Failed to report user', 'Error');
+    }
+  };
+
+  const handleViewProfile = async () => {
+    const otherUser = currentChat.participants.find(p => String(p._id || p) !== userId);
+    setShowChatMenu(false);
+    navigate(`/profile/${otherUser._id}`);
+  };
+
   return (
     <div className="w-full min-h-screen bg-gray-50 dark:bg-gray-950 pt-20 pb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -241,6 +341,8 @@ const Chat = () => {
                 <input 
                   type="text" 
                   placeholder="Search conversations..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg py-2.5 px-4 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all"
                 />
                 <svg className="absolute right-3 top-3 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -251,17 +353,17 @@ const Chat = () => {
 
             {/* Conversations List */}
             <div className="overflow-y-auto flex-1">
-              {conversations.length === 0 ? (
+              {filteredConversations.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full px-6 py-12">
                   <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mb-4">
                     <UserIcon size={32} className="text-blue-600 dark:text-blue-400" />
                   </div>
-                  <p className="text-gray-500 dark:text-gray-400 text-center font-medium">No conversations yet</p>
-                  <p className="text-gray-400 dark:text-gray-500 text-xs text-center mt-2">Start messaging with clients or freelancers</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-center font-medium">{searchQuery ? 'No conversations found' : 'No conversations yet'}</p>
+                  <p className="text-gray-400 dark:text-gray-500 text-xs text-center mt-2">{searchQuery ? 'Try searching with a different name' : 'Start messaging with clients or freelancers'}</p>
                 </div>
               ) : (
                 <div className="divide-y divide-gray-100 dark:divide-gray-800">
-                  {conversations.map((c) => {
+                  {filteredConversations.map((c) => {
                     const otherUser = c.participants.find(p => String(p._id || p) !== userId);
                     const isActive = currentChat?._id === c._id;
                     return (
@@ -336,9 +438,60 @@ const Chat = () => {
                       </div>
                     </div>
                   </div>
-                  <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-600 dark:text-gray-400">
-                    <MoreVertical size={20} />
-                  </button>
+                  <div className="relative" ref={menuRef}>
+                    <button 
+                      onClick={() => setShowChatMenu(!showChatMenu)}
+                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-600 dark:text-gray-400">
+                      <MoreVertical size={20} />
+                    </button>
+                    <AnimatePresence>
+                      {showChatMenu && (
+                        <motion.div 
+                          initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                          className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 py-1"
+                        >
+                          <button 
+                            onClick={handleViewProfile}
+                            className="w-full px-4 py-2.5 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-3"
+                          >
+                            <UserIcon size={16} />
+                            View Profile
+                          </button>
+                          <button 
+                            onClick={handleMuteNotifications}
+                            className="w-full px-4 py-2.5 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-3"
+                          >
+                            <svg size={16} className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/></svg>
+                            Mute Notifications
+                          </button>
+                          <button 
+                            onClick={handleClearConversation}
+                            className="w-full px-4 py-2.5 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-3"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            Clear Conversation
+                          </button>
+                          <div className="my-1 border-t border-gray-200 dark:border-gray-700"></div>
+                          <button 
+                            onClick={handleBlockUser}
+                            className="w-full px-4 py-2.5 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center gap-3"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                            Block User
+                          </button>
+                          <button 
+                            onClick={handleReportUser}
+                            className="w-full px-4 py-2.5 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center gap-3"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4v2m0-10a9 9 0 110 18 9 9 0 010-18zm0 0h.01"/></svg>
+                            Report User
+                          </button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
                 </div>
                 
                 {/* Messages Area */}
@@ -376,7 +529,7 @@ const Chat = () => {
                               )}
                               <div className={`max-w-xs ${isMe ? 'order-1' : ''}`}>
                                 <div 
-                                  className={`px-4 py-3 rounded-2xl ${isMe ? 'bg-blue-600 text-white rounded-br-none shadow-md' : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 rounded-bl-none'}`}
+                                  className={`px-4 py-3 rounded-2xl ${isMe ? 'bg-blue-600 text-white rounded-br-none shadow-md' : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 rounded-bl-none'} ${m.flagged ? 'ring-2 ring-amber-400 dark:ring-amber-500' : ''}`}
                                 >
                                   {m.image && (
                                     <img 
@@ -388,6 +541,12 @@ const Chat = () => {
                                   {m.audio && <CustomAudioPlayer audioSrc={m.audio} isMe={isMe} />}
                                   {m.text && <p className="text-sm leading-relaxed">{m.text}</p>}
                                 </div>
+                                {m.flagged && (
+                                  <div className={`flex items-center gap-1 mt-1 text-[10px] font-semibold text-amber-600 dark:text-amber-400 ${isMe ? 'justify-end' : 'justify-start'}`} title={m.flagReasons?.join(', ')}>
+                                    <span>⚠️</span>
+                                    <span>Flagged for review</span>
+                                  </div>
+                                )}
                                 <span className={`text-xs text-gray-500 dark:text-gray-400 mt-1 block ${isMe ? 'text-right' : 'text-left'}`}>
                                   {new Date(m.createdAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </span>

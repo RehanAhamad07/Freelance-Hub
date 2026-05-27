@@ -5,6 +5,7 @@ import api from '../services/api';
 import { Link } from 'react-router-dom';
 import { Plus, Package, MessageSquare, Briefcase, ChevronRight, User, CheckCircle, CreditCard, Send, X, AlertCircle, RefreshCw } from 'lucide-react';
 import { toast } from 'react-toastify';
+import AnalyticsDashboard from '../components/AnalyticsDashboard';
 
 const Dashboard = () => {
   const { user } = useContext(AuthContext);
@@ -483,6 +484,9 @@ const Dashboard = () => {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Analytics Dashboard */}
+      <AnalyticsDashboard />
     </div>
   );
 };
