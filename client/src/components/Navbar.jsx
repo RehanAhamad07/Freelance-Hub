@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { SocketContext } from '../context/SocketContext';
-import { Menu, X, Moon, Sun, Search as SearchIcon, Bell, CheckCircle2, MessageSquare, Heart } from 'lucide-react';
+import { Menu, X, Moon, Sun, Search as SearchIcon, Bell, CheckCircle2, MessageSquare, Heart, User, Briefcase, PlusCircle, LogOut, LayoutDashboard, CreditCard, Home, Layers } from 'lucide-react';
 import api from '../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -321,28 +321,127 @@ const Navbar = () => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-white dark:bg-dark border-t border-gray-100 dark:border-gray-800"
+            className="md:hidden bg-white dark:bg-dark border-t border-gray-100 dark:border-gray-800 shadow-xl overflow-hidden"
           >
-            <div className="px-4 py-6 space-y-4">
-              <Link to="/" onClick={() => setIsOpen(false)} className="block text-gray-700 dark:text-gray-300 font-medium">Home</Link>
-              <Link to="/services" onClick={() => setIsOpen(false)} className="block text-gray-700 dark:text-gray-300 font-medium">Services</Link>
-              <Link to="/jobs" onClick={() => setIsOpen(false)} className="block text-gray-700 dark:text-gray-300 font-medium">Jobs</Link>
+            {user && (
+              <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-dark-card/30 flex items-center gap-3">
+                {user.profilePicture ? (
+                  <img src={user.profilePicture} alt="Profile" className="w-10 h-10 rounded-full object-cover border border-gray-200 dark:border-gray-700" />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center font-bold text-white text-sm">
+                    {user.name?.charAt(0) || 'U'}
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{user.name}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
+                </div>
+                <div className="flex items-center bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40 rounded-full px-3 py-1 shadow-sm shrink-0">
+                  <span className="text-xs font-bold text-brand-green">${user.walletBalance !== undefined ? user.walletBalance : '...'}</span>
+                </div>
+              </div>
+            )}
+            
+            <div className="px-4 py-5 space-y-6 max-h-[75vh] overflow-y-auto">
+              {/* General Navigation */}
+              <div>
+                <p className="text-[10px] font-bold tracking-wider text-gray-400 dark:text-gray-500 uppercase mb-2">Explore</p>
+                <div className="space-y-1">
+                  <Link to="/" onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800/40 rounded-xl transition">
+                    <Home size={18} className="text-gray-400 dark:text-gray-500" />
+                    Home
+                  </Link>
+                  <Link to="/services" onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800/40 rounded-xl transition">
+                    <Layers size={18} className="text-gray-400 dark:text-gray-500" />
+                    Services
+                  </Link>
+                  <Link to="/jobs" onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800/40 rounded-xl transition">
+                    <Briefcase size={18} className="text-gray-400 dark:text-gray-500" />
+                    Jobs
+                  </Link>
+                </div>
+              </div>
+
               {user ? (
                 <>
-                  <Link to="/chat" onClick={() => setIsOpen(false)} className="block text-gray-700 dark:text-gray-300 font-medium">Messages</Link>
-                  <Link to="/saved" onClick={() => setIsOpen(false)} className="block text-gray-700 dark:text-gray-300 font-medium">Saved Items</Link>
-                  <Link to="/dashboard" onClick={() => setIsOpen(false)} className="block text-gray-700 dark:text-gray-300 font-medium">Dashboard</Link>
-                  <Link to="/transactions" onClick={() => setIsOpen(false)} className="block text-gray-700 dark:text-gray-300 font-medium">Transactions</Link>
+                  {/* Creation Actions */}
+                  <div>
+                    <p className="text-[10px] font-bold tracking-wider text-gray-400 dark:text-gray-500 uppercase mb-2">Publish</p>
+                    <div className="space-y-1">
+                      <Link to="/create-job" onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-3 py-2 text-sm font-semibold text-brand-green hover:bg-green-50 dark:hover:bg-green-950/20 rounded-xl transition">
+                        <PlusCircle size={18} className="text-brand-green" />
+                        Post a Job
+                      </Link>
+                      <Link to="/create-service" onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-3 py-2 text-sm font-semibold text-brand-green hover:bg-green-50 dark:hover:bg-green-950/20 rounded-xl transition">
+                        <PlusCircle size={18} className="text-brand-green" />
+                        Post a Gig
+                      </Link>
+                    </div>
+                  </div>
+
+                  {/* Account & Activity */}
+                  <div>
+                    <p className="text-[10px] font-bold tracking-wider text-gray-400 dark:text-gray-500 uppercase mb-2">Account & Activity</p>
+                    <div className="space-y-1">
+                      <Link to={`/profile/${user.id || user._id}`} onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800/40 rounded-xl transition">
+                        <User size={18} className="text-gray-400 dark:text-gray-500" />
+                        Profile
+                      </Link>
+                      <Link to="/dashboard" onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800/40 rounded-xl transition">
+                        <LayoutDashboard size={18} className="text-gray-400 dark:text-gray-500" />
+                        Dashboard
+                      </Link>
+                      <Link to="/chat" onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800/40 rounded-xl transition">
+                        <MessageSquare size={18} className="text-gray-400 dark:text-gray-500" />
+                        Messages
+                      </Link>
+                      <Link to="/saved" onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800/40 rounded-xl transition">
+                        <Heart size={18} className="text-gray-400 dark:text-gray-500" />
+                        Saved Items
+                      </Link>
+                      <Link to="/transactions" onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800/40 rounded-xl transition">
+                        <CreditCard size={18} className="text-gray-400 dark:text-gray-500" />
+                        Transactions
+                      </Link>
+                    </div>
+                  </div>
+
+                  {/* Admin Portal (if applicable) */}
                   {((user.roles || []).includes('admin') || user.isAdmin) && (
-                    <Link to="/admin" onClick={() => setIsOpen(false)} className="block text-purple-600 font-semibold">Admin Portal</Link>
+                    <div>
+                      <p className="text-[10px] font-bold tracking-wider text-gray-400 dark:text-gray-500 uppercase mb-2">Admin</p>
+                      <div className="space-y-1">
+                        <Link to="/admin" onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-3 py-2 text-sm font-semibold text-brand-purple hover:bg-purple-50 dark:hover:bg-purple-950/20 rounded-xl transition">
+                          <CheckCircle2 size={18} className="text-brand-purple" />
+                          Admin Portal
+                        </Link>
+                      </div>
+                    </div>
                   )}
-                  <button onClick={() => { logout(); setIsOpen(false); }} className="block text-red-500 font-medium w-full text-left">Logout</button>
+
+                  {/* Logout */}
+                  <div className="pt-2 border-t border-gray-100 dark:border-gray-800">
+                    <button 
+                      onClick={() => {
+                        logout();
+                        setIsOpen(false);
+                      }} 
+                      className="flex items-center gap-3 px-3 py-2.5 text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl w-full text-left transition"
+                    >
+                      <LogOut size={18} className="text-red-500" />
+                      Logout
+                    </button>
+                  </div>
                 </>
               ) : (
-                <>
-                  <Link to="/login" onClick={() => setIsOpen(false)} className="block text-gray-700 dark:text-gray-300 font-medium">Sign in</Link>
-                  <Link to="/register" onClick={() => setIsOpen(false)} className="block text-primary font-medium">Join</Link>
-                </>
+                <div className="pt-2 space-y-2 border-t border-gray-100 dark:border-gray-800">
+                  <Link to="/login" onClick={() => setIsOpen(false)} className="block text-center w-full py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800/40 rounded-xl transition">
+                    Sign in
+                  </Link>
+                  <Link to="/register" onClick={() => setIsOpen(false)} className="block text-center w-full py-2.5 text-sm font-semibold text-white bg-primary hover:bg-primary/95 rounded-xl transition shadow-sm">
+                    Join
+                  </Link>
+                </div>
               )}
             </div>
           </motion.div>
