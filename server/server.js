@@ -164,9 +164,14 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 5002;
 
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
-    console.log('MongoDB Connected');
-    server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+    console.log("MongoDB Connected");
   })
-  .catch((err) => console.log(err));
+  .catch((err) => {
+    console.log(err);
+  });

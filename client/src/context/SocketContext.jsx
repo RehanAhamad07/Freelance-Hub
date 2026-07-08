@@ -15,7 +15,7 @@ export const SocketProvider = ({ children }) => {
   useEffect(() => {
     let newSocket;
     if (user) {
-      newSocket = io('http://localhost:5002');
+      newSocket = io('https://freelance-hub-1vrp.onrender.com');
       
       newSocket.on('connect', () => {
         newSocket.emit('join', user.id || user._id);

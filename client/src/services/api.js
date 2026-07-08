@@ -2,9 +2,10 @@ import axios from 'axios';
 import { mockServices, mockReviews, mockOrders } from './mockData';
 
 const api = axios.create({
-  baseURL: 'http://localhost:5002/api',
+  // baseURL: 'http://localhost:5002/api',
+  baseURL: 'https://freelance-hub-1vrp.onrender.com',
+  
 });
-
 // Request Interceptor: add JWT to header
 api.interceptors.request.use(
   (config) => {
