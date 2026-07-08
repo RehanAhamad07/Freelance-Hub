@@ -63,6 +63,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('token');
     setUser(null);
     showToast.info('You have been logged out successfully', 'Goodbye');
+    window.location.href = '/login';
   };
 
   const googleLogin = async (credential) => {
