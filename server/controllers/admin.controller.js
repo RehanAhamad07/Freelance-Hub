@@ -4,7 +4,7 @@ const Order = require('../models/Order');
 const getAdminUsers = async (req, res) => {
   try {
     const users = await User.find({})
-      .select('name email roles isBanned bannedAt bannedReason walletBalance createdAt')
+      .select('name email roles isBanned bannedAt bannedReason walletBalance verificationStatus verificationDocument isTopRated paymentVerified createdAt')
       .sort({ createdAt: -1 });
     res.json(users);
   } catch (error) {
@@ -99,9 +99,37 @@ const getRevenueAnalytics = async (req, res) => {
   }
 };
 
+const updateVerificationStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, isTopRated } = req.body;
+
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    if (status !== undefined) {
+      if (!['unverified', 'pending', 'verified', 'rejected'].includes(status)) {
+        return res.status(400).json({ error: 'Invalid verification status' });
+      }
+      user.verificationStatus = status;
+    }
+
+    if (isTopRated !== undefined) {
+      user.isTopRated = Boolean(isTopRated);
+    }
+
+    await user.save();
+    res.json({ message: 'User verification settings updated successfully', user });
+  } catch (error) {
+    console.error('Update verification status error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
 module.exports = {
   getAdminUsers,
   banUser,
   unbanUser,
-  getRevenueAnalytics
+  getRevenueAnalytics,
+  updateVerificationStatus
 };

@@ -17,11 +17,14 @@ const jobRoutes = require('./routes/job.routes');
 const proposalRoutes = require('./routes/proposal.routes');
 const notificationRoutes = require('./routes/notification.routes');
 const adminRoutes = require('./routes/admin.routes');
+const aiRoutes = require('./routes/ai.routes');
+const analyticsRoutes = require('./routes/analytics.routes');
 
 const Conversation = require('./models/Conversation');
 const Message = require('./models/Message');
 
 const User = require('./models/User');
+const { moderateMessage } = require('./utils/chatModeration');
 
 // Initialize Cron Jobs
 require('./cron/autoComplete');
@@ -65,6 +68,8 @@ app.use('/api/jobs', jobRoutes);
 app.use('/api/proposals', proposalRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/ai', aiRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // Socket.io for Real-time Chat
 io.on('connection', (socket) => {
@@ -79,13 +84,24 @@ io.on('connection', (socket) => {
     try {
       const { conversationId, sender, receiver, text, image, audio } = data;
 
+      // Run chat moderation on text messages
+      let flagged = false;
+      let flagReasons = [];
+      if (text) {
+        const modResult = moderateMessage(text);
+        flagged = modResult.flagged;
+        flagReasons = modResult.reasons;
+      }
+
       // Save to db
       const newMessage = new Message({
         conversationId,
         sender,
         text,
         image,
-        audio
+        audio,
+        flagged,
+        flagReasons
       });
       await newMessage.save();
 
@@ -115,6 +131,8 @@ io.on('connection', (socket) => {
           text,
           image,
           audio,
+          flagged,
+          flagReasons,
           createdAt: newMessage.createdAt
         });
       } else {
@@ -124,6 +142,15 @@ io.on('connection', (socket) => {
           sendOfflineMessageEmail(receiverUser.email, senderUser?.name || 'Someone', previewText)
             .catch(err => console.error('Failed to send offline message email:', err));
         }
+      }
+
+      // Warn the sender if their message was flagged
+      if (flagged) {
+        io.to(sender).emit('messageFlagged', {
+          conversationId,
+          messageId: newMessage._id,
+          reasons: flagReasons
+        });
       }
     } catch (error) {
       console.error(error);

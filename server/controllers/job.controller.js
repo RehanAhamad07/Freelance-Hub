@@ -1,4 +1,7 @@
 const Job = require('../models/Job');
+const User = require('../models/User');
+const Notification = require('../models/Notification');
+const { sendOfflineMessageEmail } = require('../utils/email');
 
 const createJob = async (req, res) => {
   try {
@@ -13,6 +16,55 @@ const createJob = async (req, res) => {
 
     await job.save();
     res.status(201).json(job);
+
+    // --- Smart Job-to-Talent Matchmaking (runs async, doesn't block response) ---
+    (async () => {
+      try {
+        if (!job.skills || job.skills.length === 0) return;
+
+        // Find freelancers whose skills overlap with the job requirements
+        const matchingFreelancers = await User.find({
+          roles: 'freelancer',
+          skills: { $in: job.skills },
+          _id: { $ne: req.user.userId }, // Exclude the job poster
+          isBanned: { $ne: true }
+        }).select('_id name email skills').limit(50);
+
+        if (matchingFreelancers.length === 0) return;
+
+        const currency = job.currency === 'INR' ? '₹' : '$';
+        const matchedSkills = job.skills.slice(0, 3).join(', ');
+
+        for (const freelancer of matchingFreelancers) {
+          // Create in-app notification
+          const notif = new Notification({
+            recipient: freelancer._id,
+            type: 'job_match',
+            message: `🎯 New job matching your skills: "${job.title}" — ${currency}${job.budget} (${matchedSkills})`,
+            link: `/jobs/${job._id}`
+          });
+          await notif.save();
+
+          // Emit real-time notification via socket
+          if (req.io) {
+            req.io.to(freelancer._id.toString()).emit('newNotification', notif);
+          }
+
+          // Send email notification (non-blocking)
+          if (freelancer.email) {
+            sendOfflineMessageEmail(
+              freelancer.email,
+              'FreelanceHub Job Match',
+              `A new job matching your skills was just posted!\n\n"${job.title}" — ${currency}${job.budget}\nSkills: ${matchedSkills}\n\nView it now on FreelanceHub!`
+            ).catch(err => console.error('Match email error:', err));
+          }
+        }
+
+        console.log(`Job matchmaking: Notified ${matchingFreelancers.length} freelancers for job "${job.title}"`);
+      } catch (matchError) {
+        console.error('Job matchmaking error:', matchError);
+      }
+    })();
   } catch (error) {
     res.status(500).json({ error: 'Server error' });
   }

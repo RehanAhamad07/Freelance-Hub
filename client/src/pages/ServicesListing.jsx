@@ -316,11 +316,10 @@ const ServicesListing = () => {
                   return (
                     <motion.div 
                       key={service._id}
-                      initial={{ opacity: 0, y: 20 }}
+                      initial={{ opacity: 0, y: 15 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.05 }}
-                      whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                      className="group bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
+                      className="group card hover-3d"
                     >
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 p-6">
                         {/* Image Section */}
@@ -451,7 +450,7 @@ const ServicesListing = () => {
                               </button>
                               <Link
                                 to={`/service/${service._id}`}
-                                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-sm transition-colors whitespace-nowrap"
+                                className="btn-primary text-sm px-4 py-2 hover:scale-103 shadow-3d-sm"
                               >
                                 View Details
                               </Link>

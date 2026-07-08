@@ -4,10 +4,19 @@
 
 @layer base {
   body {
-    @apply bg-gray-50 text-gray-900 transition-colors duration-300;
+    @apply bg-gray-50 text-gray-900 font-sans transition-colors duration-300 antialiased;
+    background-size: 28px 28px;
+    background-image: radial-gradient(circle, rgba(0, 0, 0, 0.02) 1px, transparent 1px);
   }
+  
   .dark body {
-    @apply bg-[#1e1e1e] text-gray-100;
+    @apply bg-dark text-gray-100;
+    background-size: 28px 28px;
+    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.12) 1.2px, transparent 1.2px);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-tight;
   }
 
   /* Smooth scrolling */
@@ -17,85 +26,125 @@
 
   /* Custom scrollbar */
   ::-webkit-scrollbar {
-    @apply w-2.5 h-2.5;
+    @apply w-2 h-2;
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-gray-100 dark:bg-gray-800;
+    @apply bg-gray-50 dark:bg-dark;
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-gray-400 dark:bg-gray-600 rounded-full;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-500 dark:bg-gray-500;
+    @apply bg-gray-300 dark:bg-dark-border rounded-full hover:bg-gray-400 dark:hover:bg-slate-700 transition-colors;
   }
 }
 
 @layer components {
+  /* Premium Glass Panels */
+  .glass-panel {
+    @apply bg-white/80 dark:bg-dark-card/85 backdrop-blur-md border border-gray-200/40 dark:border-dark-border/40;
+  }
+
+  .glass-dropdown {
+    @apply bg-white/95 dark:bg-dark-card/95 backdrop-blur-lg border border-gray-200/50 dark:border-dark-border/60 shadow-3d-lg dark:shadow-3d-dark-lg;
+  }
+
+  /* 3D Interactive Hover Effect */
+  .hover-3d {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  .hover-3d:hover {
+    transform: translateY(-6px) scale(1.015);
+    @apply shadow-3d-lg dark:shadow-3d-dark-lg;
+  }
+
+  /* Nav link hover underline slide */
+  .nav-link-hover {
+    @apply relative py-1 text-slate-600 dark:text-slate-300 hover:text-brand-indigo dark:hover:text-brand-indigo font-semibold transition-colors duration-300;
+  }
+  .nav-link-hover::after {
+    content: '';
+    @apply absolute bottom-0 left-0 w-full h-[2px] bg-brand-indigo origin-bottom-right scale-x-0 transition-transform duration-300 ease-out;
+  }
+  .nav-link-hover:hover::after {
+    @apply origin-bottom-left scale-x-100;
+  }
+
   /* Buttons */
   .btn-primary {
-    @apply px-6 py-2.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-all duration-200 hover:shadow-lg;
+    @apply px-6 py-2.5 bg-gradient-to-r from-brand-blue to-brand-indigo hover:from-brand-indigo hover:to-brand-purple text-white font-semibold rounded-xl transition-all duration-300 shadow-3d-sm hover:shadow-glow-blue hover:-translate-y-0.5 active:translate-y-0;
   }
 
   .btn-secondary {
-    @apply px-6 py-2.5 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white font-semibold rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200;
+    @apply px-6 py-2.5 bg-white dark:bg-dark-card text-gray-800 dark:text-gray-200 font-semibold rounded-xl border border-gray-200 dark:border-dark-border hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-all duration-300 shadow-3d-sm hover:-translate-y-0.5;
+  }
+
+  .btn-success {
+    @apply px-6 py-2.5 bg-gradient-to-r from-brand-green to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold rounded-xl transition-all duration-300 shadow-3d-sm hover:shadow-glow-primary hover:-translate-y-0.5;
   }
 
   /* Cards */
   .card {
-    @apply bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow duration-300;
+    @apply bg-white dark:bg-dark-card rounded-2xl border border-gray-100 dark:border-dark-border/65 shadow-3d-sm dark:shadow-[0_4px_20px_rgba(0,0,0,0.2)] hover:border-gray-200 dark:hover:border-slate-700/80 transition-all duration-300;
   }
 
   /* Input styles */
   .input-primary {
-    @apply w-full px-4 py-2.5 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg outline-none border-2 border-transparent focus:border-blue-500 transition-colors;
+    @apply w-full px-4 py-2.5 bg-gray-50 dark:bg-dark/40 text-gray-900 dark:text-white rounded-xl outline-none border border-gray-200 dark:border-dark-border focus:border-brand-blue dark:focus:border-brand-blue/80 focus:bg-white dark:focus:bg-dark-card transition-all duration-200 shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)];
   }
 
   /* Badge */
   .badge {
-    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold;
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold tracking-wide border;
   }
 
   .badge-blue {
-    @apply bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300;
+    @apply bg-blue-50/80 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border-blue-100 dark:border-blue-900/50;
   }
 
   .badge-green {
-    @apply bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300;
+    @apply bg-green-50/80 dark:bg-green-950/40 text-brand-green dark:text-brand-green/90 border-green-100 dark:border-green-900/50;
   }
 
   .badge-purple {
-    @apply bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300;
+    @apply bg-purple-50/80 dark:bg-purple-950/40 text-brand-purple dark:text-brand-purple/90 border-purple-100 dark:border-purple-900/50;
+  }
+  
+  .badge-pink {
+    @apply bg-pink-50/80 dark:bg-pink-950/40 text-brand-pink dark:text-brand-pink/90 border-pink-100 dark:border-pink-900/50;
   }
 
   /* Gradient text */
   .gradient-text {
-    @apply bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-brand-blue via-brand-indigo to-brand-pink bg-clip-text text-transparent font-display font-bold;
   }
 
   /* Smooth animations */
   .fade-in {
-    animation: fadeIn 0.5s ease-in;
+    animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
   .slide-up {
-    animation: slideUp 0.5s ease-out;
+    animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  /* Subtle dotted grid pattern */
+  .bg-grid-pattern {
+    background-size: 28px 28px;
+    background-image: radial-gradient(circle, rgba(0, 0, 0, 0.05) 1.2px, transparent 1.2px);
+  }
+  .dark .bg-grid-pattern {
+    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.12) 1.2px, transparent 1.2px);
   }
 
   @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 
   @keyframes slideUp {
     from {
-      transform: translateY(20px);
+      transform: translateY(16px);
       opacity: 0;
     }
     to {
@@ -117,7 +166,7 @@
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0.05),
     transparent
   );
   background-size: 200% 100%;

@@ -27,34 +27,41 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-64px)] flex items-center justify-center bg-gray-50 dark:bg-dark p-4">
+    <div className="min-h-[calc(100vh-64px)] flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-[#060a12] dark:via-[#0c1222] dark:to-[#070b14] p-4 relative overflow-hidden">
+      {/* Dotted Grid Overlay */}
+      <div className="absolute inset-0 bg-grid-pattern pointer-events-none z-0"></div>
+
+      {/* Background Glows */}
+      <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-brand-blue/5 rounded-full blur-3xl z-0"></div>
+      <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-brand-purple/5 rounded-full blur-3xl z-0"></div>
+
       <motion.div 
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-2xl border border-gray-100 dark:border-gray-700"
+        className="w-full max-w-md glass-panel p-8 shadow-3d-lg dark:shadow-3d-dark-lg rounded-3xl border border-gray-200/50 dark:border-dark-border/60 hover-3d z-10"
       >
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Welcome Back</h2>
-          <p className="text-gray-500 dark:text-gray-400">Sign in to your account</p>
+          <h2 className="text-3xl font-display font-extrabold text-gray-900 dark:text-white mb-2">Welcome Back</h2>
+          <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Sign in to your account</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Email Address</label>
             <input 
               type="email" 
               name="email"
               value={formData.email}
               onChange={handleChange}
               placeholder="you@example.com"
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
+              className="input-primary w-full text-sm font-semibold focus:ring-1 focus:ring-brand-blue"
               required
             />
           </div>
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
-              <Link to="/forgot-password" className="text-sm text-primary hover:underline font-medium">Forgot Password?</Link>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Password</label>
+              <Link to="/forgot-password" className="text-xs font-bold text-brand-green hover:text-emerald-600 transition">Forgot Password?</Link>
             </div>
             <input 
               type="password" 
@@ -62,23 +69,23 @@ const Login = () => {
               value={formData.password}
               onChange={handleChange}
               placeholder="••••••••"
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
+              className="input-primary w-full text-sm font-semibold focus:ring-1 focus:ring-brand-blue"
               required
             />
           </div>
           
           <button 
             type="submit" 
-            className="w-full bg-primary hover:bg-green-600 text-white font-semibold py-3 rounded-xl transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+            className="w-full btn-success py-3.5 mt-2 rounded-xl text-sm font-bold shadow-3d-md hover:scale-[1.02] hover:shadow-glow-primary active:scale-[0.98] transition-all flex items-center justify-center"
           >
             Sign In
           </button>
         </form>
 
         <div className="mt-6 flex items-center justify-between">
-          <span className="w-1/5 border-b dark:border-gray-600 lg:w-1/4"></span>
-          <span className="text-xs text-center text-gray-500 uppercase dark:text-gray-400">or login with</span>
-          <span className="w-1/5 border-b dark:border-gray-600 lg:w-1/4"></span>
+          <span className="w-1/5 border-b border-gray-200 dark:border-dark-border lg:w-1/4"></span>
+          <span className="text-[10px] text-center text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">or login with</span>
+          <span className="w-1/5 border-b border-gray-200 dark:border-dark-border lg:w-1/4"></span>
         </div>
 
         <div className="mt-6 flex justify-center">
@@ -89,8 +96,8 @@ const Login = () => {
           />
         </div>
 
-        <p className="text-center mt-6 text-gray-600 dark:text-gray-400">
-          Don't have an account? <Link to="/register" className="text-primary hover:underline font-medium">Join now</Link>
+        <p className="text-center mt-8 text-sm font-semibold text-slate-500 dark:text-slate-400">
+          Don't have an account? <Link to="/register" className="text-brand-green font-bold hover:underline ml-1">Join now</Link>
         </p>
       </motion.div>
     </div>

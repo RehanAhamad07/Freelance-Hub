@@ -163,9 +163,9 @@ const Profile = () => {
         
         {/* Hero Section with Profile Header */}
         <motion.div 
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl shadow-lg border border-gray-200 dark:border-gray-800 p-8 sm:p-12 mb-12 overflow-hidden relative"
+          className="card p-8 sm:p-12 mb-12 shadow-3d-lg dark:shadow-3d-dark-lg overflow-hidden relative border border-gray-200/50 dark:border-dark-border/60 hover-3d"
           style={{
             background: profile.headerBackground 
               ? profile.headerBackground
@@ -173,26 +173,26 @@ const Profile = () => {
           }}
         >
           {!profile.headerBackground && (
-            <div className="absolute inset-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-white to-slate-50/55 dark:from-[#0d121f] dark:to-dark-card"></div>
           )}
           {profile.headerBackground && (
-            <div className="absolute inset-0 bg-black/10"></div>
+            <div className="absolute inset-0 bg-black/15"></div>
           )}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl"></div>
+          <div className="absolute top-0 right-0 w-64 h-64 bg-brand-blue/5 rounded-full blur-3xl"></div>
           <div className="relative">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-8">
               {/* Profile Picture */}
               <div className="relative flex-shrink-0">
-                <div className="w-40 h-40 rounded-2xl shadow-xl overflow-hidden border-4 border-white dark:border-gray-700 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                <div className="w-40 h-40 rounded-2xl shadow-3d-lg overflow-hidden border-4 border-white dark:border-dark-card bg-gray-50 dark:bg-dark flex items-center justify-center">
                   {profile.profilePicture ? (
                     <img src={profile.profilePicture} alt={profile.name} className="w-full h-full object-cover" />
                   ) : (
-                    <div className="text-6xl font-black text-gray-400">{profile.name.charAt(0)}</div>
+                    <div className="text-6xl font-display font-extrabold text-slate-300 dark:text-slate-700">{profile.name.charAt(0)}</div>
                   )}
                 </div>
                 {isFreelancer && (
-                  <div className="absolute -bottom-2 -right-2 bg-green-500 w-12 h-12 rounded-full flex items-center justify-center shadow-lg border-4 border-white dark:border-gray-900" title="Verified">
-                    <Star size={24} className="text-white fill-white" />
+                  <div className="absolute -bottom-2 -right-2 bg-gradient-to-r from-brand-green to-emerald-500 w-11 h-11 rounded-full flex items-center justify-center shadow-3d-md border-4 border-white dark:border-dark-card" title="Verified">
+                    <Star size={20} className="text-white fill-white" />
                   </div>
                 )}
               </div>
@@ -201,48 +201,48 @@ const Profile = () => {
               <div className="flex-1">
                 <div className="flex flex-col gap-3 mb-6">
                   <div className="flex flex-wrap items-center gap-3">
-                    <h1 className="text-4xl font-bold text-gray-900 dark:text-white">{profile.name}</h1>
+                    <h1 className="text-4xl font-display font-extrabold text-gray-900 dark:text-white">{profile.name}</h1>
                     {profile.verificationStatus === 'verified' ? (
-                      <span className="px-4 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1 border border-green-200 dark:border-green-800/40">
-                        <CheckCircle size={12} /> Verified Talent
+                      <span className="px-3.5 py-1 bg-green-50/80 dark:bg-green-950/20 text-brand-green dark:text-brand-green/90 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1 border border-green-100 dark:border-green-900/40 shadow-3d-sm">
+                        <CheckCircle size={12} /> Verified Seller
                       </span>
                     ) : profile.verificationStatus === 'pending' ? (
-                      <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full text-xs font-bold uppercase tracking-wider">
+                      <span className="px-3.5 py-1 bg-blue-50/80 dark:bg-blue-950/20 text-brand-blue dark:text-brand-blue/90 rounded-full text-xs font-bold uppercase tracking-wider border border-blue-100 dark:border-blue-900/40">
                         Verification Pending
                       </span>
                     ) : null}
                     {profile.isTopRated && (
-                      <span className="px-4 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1 border border-amber-200 dark:border-amber-800/40">
+                      <span className="px-3.5 py-1 bg-amber-50/80 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1 border border-amber-100 dark:border-amber-900/40 shadow-3d-sm">
                         <Award size={12} /> Top Rated
                       </span>
                     )}
                   </div>
                   {profile.country && (
-                    <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 text-lg">
-                      <MapPin size={20} className="text-blue-600" />
-                      <span className="font-semibold">{profile.country}</span>
+                    <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 text-base font-semibold">
+                      <MapPin size={18} className="text-brand-blue" />
+                      <span>{profile.country}</span>
                     </div>
                   )}
                 </div>
 
                 {/* Stats for Freelancers */}
                 {isFreelancer && (
-                  <div className="grid grid-cols-3 gap-4 mb-6">
-                    <div className="bg-white dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-                      <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{(profile.rating || 0).toFixed(1)}</div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400 font-semibold flex items-center gap-1">
-                        <Star size={14} className="fill-yellow-400 text-yellow-400" /> Rating
+                  <div className="grid grid-cols-3 gap-4 mb-6 max-w-md">
+                    <div className="bg-white/80 dark:bg-dark-card/60 rounded-xl p-3 border border-slate-100 dark:border-dark-border/40 shadow-3d-sm text-center">
+                      <div className="text-xl font-display font-extrabold text-brand-blue dark:text-brand-blue">{(profile.rating || 0).toFixed(1)}</div>
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5 flex items-center justify-center gap-1">
+                        <Star size={12} className="fill-yellow-400 text-yellow-400" /> Rating
                       </div>
                     </div>
-                    <div className="bg-white dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-                      <div className="text-2xl font-bold text-green-600 dark:text-green-400">{profile.completedJobs || 0}</div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400 font-semibold flex items-center gap-1">
-                        <Briefcase size={14} /> Jobs Done
+                    <div className="bg-white/80 dark:bg-dark-card/60 rounded-xl p-3 border border-slate-100 dark:border-dark-border/40 shadow-3d-sm text-center">
+                      <div className="text-xl font-display font-extrabold text-brand-green dark:text-brand-green">{profile.completedJobs || 0}</div>
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5 flex items-center justify-center gap-1">
+                        <Briefcase size={12} /> Jobs Done
                       </div>
                     </div>
-                    <div className="bg-white dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-                      <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{services.length}</div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400 font-semibold">Active Gigs</div>
+                    <div className="bg-white/80 dark:bg-dark-card/60 rounded-xl p-3 border border-slate-100 dark:border-dark-border/40 shadow-3d-sm text-center">
+                      <div className="text-xl font-display font-extrabold text-brand-purple dark:text-brand-purple">{services.length}</div>
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">Gigs</div>
                     </div>
                   </div>
                 )}
@@ -252,12 +252,12 @@ const Profile = () => {
                   {isOwnProfile ? (
                     <>
                       <motion.button 
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.98 }}
                         onClick={() => setIsEditing(true)}
-                        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-lg transition-all shadow-md hover:shadow-lg"
+                        className="btn-primary flex items-center gap-2 text-sm font-bold shadow-3d-sm hover:scale-103 py-3 px-6 rounded-xl"
                       >
-                        <Edit2 size={18} /> Edit Profile
+                        <Edit2 size={16} /> Edit Profile
                       </motion.button>
                       <ProfileThemeCustomizer 
                         currentColor={profile.themeColor || '#3B82F6'}
@@ -266,34 +266,34 @@ const Profile = () => {
                       />
                       {(!profile.verificationStatus || profile.verificationStatus === 'unverified' || profile.verificationStatus === 'rejected') && (
                         <motion.button 
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
+                          whileHover={{ scale: 1.03 }}
+                          whileTap={{ scale: 0.98 }}
                           onClick={() => setShowVerificationModal(true)}
-                          className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded-lg transition-all shadow-md hover:shadow-lg"
+                          className="btn-success flex items-center gap-2 text-sm font-bold shadow-3d-sm hover:scale-103 py-3 px-6 rounded-xl"
                         >
-                          <CheckCircle size={18} /> Get Verified
+                          <CheckCircle size={16} /> Get Verified
                         </motion.button>
                       )}
                     </>
                   ) : (
                     <>
                       <motion.a 
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.98 }}
                         href={`https://mail.google.com/mail/?view=cm&fs=1&to=${profile.email}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-900 dark:text-white font-bold px-6 py-3 rounded-lg transition-all"
+                        className="btn-secondary flex items-center gap-2 text-sm font-bold shadow-3d-sm hover:scale-103 py-3 px-6 rounded-xl"
                       >
-                        <Mail size={18} /> Email
+                        <Mail size={16} /> Email
                       </motion.a>
                       <motion.button 
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.98 }}
                         onClick={handleMessageClick}
-                        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-lg transition-all shadow-md hover:shadow-lg"
+                        className="btn-primary flex items-center gap-2 text-sm font-bold shadow-3d-sm hover:scale-103 py-3 px-6 rounded-xl"
                       >
-                        <MessageSquare size={18} /> Message
+                        <MessageSquare size={16} /> Message
                       </motion.button>
                     </>
                   )}
@@ -346,10 +346,10 @@ const Profile = () => {
             
             {/* Information Card */}
             <motion.div 
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-md border border-gray-200 dark:border-gray-800"
+              className="card p-6 hover-3d"
             >
               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
                 <Phone size={20} className="text-blue-600" />
@@ -377,10 +377,10 @@ const Profile = () => {
             {/* Education Card */}
             {profile.education?.length > 0 && (
               <motion.div 
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-md border border-gray-200 dark:border-gray-800"
+                className="card p-6 hover-3d"
               >
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
                   <GraduationCap size={20} className="text-purple-600" />
@@ -399,10 +399,10 @@ const Profile = () => {
 
             {/* Skills Card */}
             <motion.div 
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-md border border-gray-200 dark:border-gray-800"
+              className="card p-6 hover-3d"
             >
               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
                 <Briefcase size={20} className="text-blue-600" />
@@ -426,10 +426,10 @@ const Profile = () => {
 
             {/* Languages Card */}
             <motion.div 
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-md border border-gray-200 dark:border-gray-800"
+              className="card p-6 hover-3d"
             >
               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Languages</h3>
               {profile.languages?.length > 0 ? (
@@ -453,28 +453,28 @@ const Profile = () => {
           <div className="lg:col-span-2 space-y-6">
             
             {/* Tabs Selector */}
-            <div className="flex border-b border-gray-200 dark:border-gray-800 gap-8 px-2">
+            <div className="flex border-b border-gray-200 dark:border-dark-border/60 gap-8 px-2">
               <button
                 onClick={() => setActiveTab('about')}
-                className={`pb-4 font-bold text-lg transition border-b-2 ${
+                className={`pb-4 font-display font-extrabold text-lg transition border-b-2 ${
                   activeTab === 'about'
-                    ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                    : 'border-transparent text-gray-500 hover:text-gray-900 dark:hover:text-white'
+                    ? 'border-brand-indigo text-brand-indigo dark:text-brand-blue'
+                    : 'border-transparent text-slate-400 hover:text-slate-800 dark:hover:text-white'
                 }`}
               >
                 Overview & Gigs
               </button>
               <button
                 onClick={() => setActiveTab('portfolio')}
-                className={`pb-4 font-bold text-lg transition border-b-2 flex items-center gap-2 ${
+                className={`pb-4 font-display font-extrabold text-lg transition border-b-2 flex items-center gap-2 ${
                   activeTab === 'portfolio'
-                    ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                    : 'border-transparent text-gray-500 hover:text-gray-900 dark:hover:text-white'
+                    ? 'border-brand-indigo text-brand-indigo dark:text-brand-blue'
+                    : 'border-transparent text-slate-400 hover:text-slate-800 dark:hover:text-white'
                 }`}
               >
                 <Layers size={18} />
                 Portfolio Showcase
-                <span className="ml-1 px-2 py-0.5 bg-gray-100 dark:bg-gray-800 text-xs rounded-full text-gray-600 dark:text-gray-400">
+                <span className="ml-1 px-2 py-0.5 bg-slate-100 dark:bg-dark-card text-xs font-bold rounded-full text-slate-600 dark:text-slate-400">
                   {profile.portfolioItems?.length || 0}
                 </span>
               </button>
@@ -484,20 +484,20 @@ const Profile = () => {
               <>
                 {/* About Section */}
                 <motion.div 
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
-                  className="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-md border border-gray-200 dark:border-gray-800"
+                  className="card p-8 hover-3d"
                 >
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">About</h3>
+                  <h3 className="text-2xl font-display font-bold text-gray-900 dark:text-white mb-6">About</h3>
                   {profile.bio ? (
-                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-lg whitespace-pre-wrap">{profile.bio}</p>
+                    <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-base font-semibold whitespace-pre-wrap">{profile.bio}</p>
                   ) : (
                     <div className="flex flex-col items-center justify-center py-12 text-center">
-                      <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
-                        <Mail size={32} className="text-gray-400" />
+                      <div className="w-16 h-16 bg-gray-50 dark:bg-dark-card rounded-full flex items-center justify-center mb-4 border border-slate-200/50 dark:border-dark-border">
+                        <Mail size={28} className="text-slate-400" />
                       </div>
-                      <p className="text-gray-500 dark:text-gray-400 font-medium">This user hasn't written a bio yet</p>
+                      <p className="text-slate-500 dark:text-slate-400 font-medium">This user hasn't written a bio yet</p>
                     </div>
                   )}
                 </motion.div>
@@ -505,14 +505,14 @@ const Profile = () => {
                 {/* Active Gigs Section */}
                 {isFreelancer && (
                   <motion.div 
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-md border border-gray-200 dark:border-gray-800"
+                    className="card p-8 hover-3d"
                   >
                     <div className="flex items-center justify-between mb-8">
-                      <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Active Gigs</h3>
-                      <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-4 py-2 rounded-full font-bold text-sm">
+                      <h3 className="text-2xl font-display font-bold text-gray-900 dark:text-white">Active Gigs</h3>
+                      <span className="badge-blue px-3.5 py-1.5 rounded-full font-bold text-xs">
                         {services.length} {services.length === 1 ? 'Gig' : 'Gigs'}
                       </span>
                     </div>
@@ -522,20 +522,19 @@ const Profile = () => {
                         {services.map(gig => (
                           <motion.div
                             key={gig._id}
-                            whileHover={{ y: -5 }}
-                            className="group"
+                            className="group h-full"
                           >
                             <Link to={`/service/${gig._id}`} className="block h-full">
-                              <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:border-blue-400 dark:hover:border-blue-500 transition-all shadow-sm hover:shadow-lg h-full flex flex-col">
+                              <div className="card overflow-hidden hover:border-brand-blue/80 dark:hover:border-brand-blue/80 hover:shadow-glow-blue/10 flex flex-col h-full hover-3d">
                                 
                                 {/* Gig Image */}
-                                <div className="aspect-video w-full bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center relative overflow-hidden">
+                                <div className="aspect-video w-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 flex items-center justify-center relative overflow-hidden">
                                   {gig.image ? (
-                                    <img src={gig.image} alt={gig.title} className="w-full h-full object-cover group-hover:scale-110 transition duration-500" />
+                                    <img src={gig.image} alt={gig.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
                                   ) : (
-                                    <div className="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
-                                      <Briefcase size={32} className="mb-2 opacity-50" />
-                                      <span className="text-xs font-bold uppercase tracking-widest">{gig.category}</span>
+                                    <div className="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500">
+                                      <Briefcase size={28} className="mb-2 opacity-50" />
+                                      <span className="text-[10px] font-bold uppercase tracking-wider">{gig.category}</span>
                                     </div>
                                   )}
                                 </div>
@@ -543,20 +542,20 @@ const Profile = () => {
                                 {/* Gig Info */}
                                 <div className="p-5 flex-1 flex flex-col justify-between">
                                   <div>
-                                    <h4 className="font-bold text-gray-900 dark:text-white mb-3 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition">
+                                    <h4 className="font-display font-bold text-gray-900 dark:text-white mb-2 line-clamp-2 group-hover:text-brand-blue dark:group-hover:text-brand-blue transition">
                                       {gig.title}
                                     </h4>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-4">{gig.description}</p>
+                                    <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 mb-4 leading-relaxed">{gig.description}</p>
                                   </div>
 
                                   {/* Footer */}
-                                  <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
+                                  <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-dark-border/40">
                                     <div>
-                                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Starting at</p>
-                                      <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">${gig.price}</p>
+                                      <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-0.5">Starting at</p>
+                                      <p className="text-xl font-display font-extrabold text-brand-blue">${gig.price}</p>
                                     </div>
-                                    <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white dark:group-hover:bg-blue-600 transition">
-                                      <ChevronRight size={20} />
+                                    <div className="w-9 h-9 rounded-full bg-blue-50 dark:bg-blue-950/20 text-brand-blue flex items-center justify-center group-hover:bg-brand-blue group-hover:text-white transition">
+                                      <ChevronRight size={18} />
                                     </div>
                                   </div>
                                 </div>
@@ -567,11 +566,11 @@ const Profile = () => {
                       </div>
                     ) : (
                       <div className="flex flex-col items-center justify-center py-16">
-                        <div className="w-20 h-20 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
-                          <Briefcase size={40} className="text-gray-400" />
+                        <div className="w-20 h-20 bg-gray-50 dark:bg-dark-card border border-slate-100 dark:border-dark-border/40 rounded-full flex items-center justify-center mb-4">
+                          <Briefcase size={36} className="text-slate-400" />
                         </div>
-                        <p className="text-gray-600 dark:text-gray-400 font-medium text-center">No active gigs yet</p>
-                        <p className="text-gray-500 dark:text-gray-500 text-sm mt-2">Start creating gigs to showcase your services</p>
+                        <p className="text-slate-600 dark:text-slate-400 font-bold text-center">No active gigs yet</p>
+                        <p className="text-slate-400 dark:text-slate-500 text-xs mt-1">Start creating gigs to showcase your services</p>
                       </div>
                     )}
                   </motion.div>
@@ -580,21 +579,21 @@ const Profile = () => {
             ) : (
               /* Portfolio Showcase Section */
               <motion.div 
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-md border border-gray-200 dark:border-gray-800"
+                className="card p-8 hover-3d"
               >
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
                   <div>
-                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Rich Media Portfolio</h3>
-                    <p className="text-sm text-gray-500 mt-1">Showcasing completed orders, Figma prototypes, code repos, and media</p>
+                    <h3 className="text-2xl font-display font-bold text-gray-900 dark:text-white">Rich Media Portfolio</h3>
+                    <p className="text-xs text-slate-500 mt-1">Showcasing completed orders, Figma prototypes, code repos, and media</p>
                   </div>
                   {isOwnProfile && (
                     <button
                       onClick={() => setShowPortfolioModal(true)}
-                      className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2.5 rounded-xl text-sm transition shadow"
+                      className="btn-primary flex items-center gap-2 text-xs font-bold shadow-3d-sm py-2 px-4 rounded-xl hover:scale-103"
                     >
-                      <Plus size={16} /> Add Project
+                      <Plus size={14} /> Add Project
                     </button>
                   )}
                 </div>

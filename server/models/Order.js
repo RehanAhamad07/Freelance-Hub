@@ -32,6 +32,14 @@ const orderSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  selectedAddons: [{
+    title: { type: String },
+    price: { type: Number }
+  }],
+  referralCredited: {
+    type: Boolean,
+    default: false,
+  },
   deadline: {
     type: Date,
   },

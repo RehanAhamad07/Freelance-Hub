@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
 const { sendWelcomeEmail, sendPasswordResetOtp } = require('../utils/email');
+const { generateReferralCode } = require('../utils/gamification');
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const ADMIN_IDS = (process.env.ADMIN_USER_IDS || '').split(',').map(v => v.trim()).filter(Boolean);
@@ -13,18 +14,33 @@ const getIsAdmin = (user) => {
 
 const register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, referralCode: refCode } = req.body;
     let user = await User.findOne({ email });
     if (user) return res.status(400).json({ error: 'User already exists' });
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    // Generate unique referral code
+    let myReferralCode = generateReferralCode(name);
+    while (await User.findOne({ referralCode: myReferralCode })) {
+      myReferralCode = generateReferralCode(name);
+    }
+
+    // Check if referred by someone
+    let referredBy = null;
+    if (refCode) {
+      const referrer = await User.findOne({ referralCode: refCode });
+      if (referrer) referredBy = referrer._id;
+    }
+
     user = new User({
       name,
       email,
       password: hashedPassword,
-      roles: ['client', 'freelancer']
+      roles: ['client', 'freelancer'],
+      referralCode: myReferralCode,
+      referredBy,
     });
 
     await user.save();
@@ -109,7 +125,7 @@ const getPublicProfile = async (req, res) => {
 const updateProfile = async (req, res) => {
   try {
     const userId = req.user.userId;
-    const allowedFields = ['bio', 'phone', 'country', 'education', 'languages', 'skills', 'profilePicture'];
+    const allowedFields = ['bio', 'phone', 'country', 'education', 'languages', 'skills', 'profilePicture', 'portfolioItems'];
     const updateData = {};
     
     for (const field of allowedFields) {
@@ -365,4 +381,28 @@ const resetPassword = async (req, res) => {
   }
 };
 
-module.exports = { register, login, getProfile, getPublicProfile, updateProfile, googleLogin, toggleSaveService, toggleSaveJob, getSavedItems, walletTransaction, forgotPassword, resetPassword };
+const requestVerification = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { documentUrl } = req.body;
+    if (!documentUrl || typeof documentUrl !== 'string') {
+      return res.status(400).json({ error: 'Please provide a valid document or portfolio link' });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    user.verificationStatus = 'pending';
+    user.verificationDocument = documentUrl.trim();
+    await user.save();
+
+    const userObj = user.toObject();
+    userObj.isAdmin = getIsAdmin(user);
+    res.json({ message: 'Verification request submitted successfully', user: userObj });
+  } catch (error) {
+    console.error('Request verification error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+module.exports = { register, login, getProfile, getPublicProfile, updateProfile, googleLogin, toggleSaveService, toggleSaveJob, getSavedItems, walletTransaction, forgotPassword, resetPassword, requestVerification };

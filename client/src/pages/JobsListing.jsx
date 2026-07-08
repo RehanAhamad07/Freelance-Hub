@@ -318,11 +318,10 @@ const JobsListing = () => {
                   return (
                     <motion.div 
                       key={job._id}
-                      initial={{ opacity: 0, y: 20 }}
+                      initial={{ opacity: 0, y: 15 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.05 }}
-                      whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                      className="group bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
+                      className="group card hover-3d"
                     >
                       <div className="p-6">
                         {/* Header */}
@@ -441,7 +440,7 @@ const JobsListing = () => {
                               {/* View Button */}
                               <Link
                                 to={`/jobs/${job._id}`}
-                                className="ml-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-sm transition-colors"
+                                className="btn-primary text-sm px-4 py-2 hover:scale-103 shadow-3d-sm ml-auto whitespace-nowrap"
                               >
                                 View Details
                               </Link>

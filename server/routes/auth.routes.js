@@ -1,6 +1,6 @@
 const express = require('express');
 const rateLimit = require('express-rate-limit');
-const { register, login, getProfile, getPublicProfile, updateProfile, googleLogin, toggleSaveService, toggleSaveJob, getSavedItems, walletTransaction, forgotPassword, resetPassword } = require('../controllers/auth.controller');
+const { register, login, getProfile, getPublicProfile, updateProfile, googleLogin, toggleSaveService, toggleSaveJob, getSavedItems, walletTransaction, forgotPassword, resetPassword, requestVerification } = require('../controllers/auth.controller');
 const { authMiddleware } = require('../middleware/auth.middleware');
 
 const router = express.Router();
@@ -20,6 +20,7 @@ router.post('/reset-password', authLimiter, resetPassword);
 
 router.get('/profile', authMiddleware, getProfile);
 router.put('/profile', authMiddleware, updateProfile);
+router.post('/verification/request', authMiddleware, requestVerification);
 router.get('/public/:userId', getPublicProfile);
 
 // Saved Items Routes

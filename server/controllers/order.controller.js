@@ -3,6 +3,7 @@ const Service = require('../models/Service');
 const User = require('../models/User');
 const Delivery = require('../models/Delivery');
 const Notification = require('../models/Notification');
+const { getCommissionRate } = require('../utils/gamification');
 const cloudinary = require('cloudinary').v2;
 const fs = require('fs');
 const path = require('path');
@@ -58,41 +59,53 @@ const saveDisputeFileLocally = async (file) => {
 
 const createOrder = async (req, res) => {
   try {
-    const { serviceId } = req.body;
+    const { serviceId, addons } = req.body;
     const service = await Service.findById(serviceId);
     if (!service) return res.status(404).json({ error: 'Service not found' });
 
     const buyer = await User.findById(req.user.userId);
     if (!buyer) return res.status(404).json({ error: 'User not found' });
 
+    // Calculate total with add-ons
+    let totalPrice = service.price;
+    const selectedAddons = [];
+    if (addons && Array.isArray(addons) && service.addons) {
+      for (const addonId of addons) {
+        const addon = service.addons.id(addonId);
+        if (addon) {
+          totalPrice += addon.price;
+          selectedAddons.push({ title: addon.title, price: addon.price });
+        }
+      }
+    }
+
     // Escrow logic: Deduct money from buyer wallet
-    if (buyer.walletBalance < service.price) {
+    if (buyer.walletBalance < totalPrice) {
       return res.status(400).json({ error: 'Insufficient wallet balance. Please top up your account.' });
     }
 
-    // Deduct
-    buyer.walletBalance -= service.price;
+    buyer.walletBalance -= totalPrice;
     await buyer.save();
 
-    // Create Order with Escrow
     const order = new Order({
       client: req.user.userId,
       freelancer: service.freelancer,
       service: service._id,
-      price: service.price,
-      escrowAmount: service.price, // Store in escrow
-      status: 'in_progress', // Start immediately
+      price: totalPrice,
+      escrowAmount: totalPrice,
+      selectedAddons,
+      status: 'in_progress',
       deliveryTime: service.deliveryTime,
       deadline: calculateDeadline(service.deliveryTime)
     });
 
     await order.save();
 
-    // Alert freelancer
+    const addonText = selectedAddons.length > 0 ? ` (includes ${selectedAddons.length} add-on${selectedAddons.length > 1 ? 's' : ''})` : '';
     const notif = new Notification({
       recipient: service.freelancer,
       type: 'order_created',
-      message: `You have a new order for "${service.title}". The funds ($${service.price}) are securely held in escrow.`,
+      message: `You have a new order for "${service.title}"${addonText}. The funds ($${totalPrice}) are securely held in escrow.`,
       link: `/dashboard`
     });
     await notif.save();
@@ -185,22 +198,38 @@ const acceptOrder = async (req, res) => {
     const seller = await User.findById(order.freelancer);
     if (!seller) return res.status(404).json({ error: 'Seller not found' });
 
-    // Release Escrow
-    const platformFee = Math.round(order.escrowAmount * 0.10); // 10% platform fee
+    // Dynamic commission based on freelancer level
+    const commissionRate = getCommissionRate(seller);
+    const platformFee = Math.round(order.escrowAmount * commissionRate);
     const payoutAmount = order.escrowAmount - platformFee;
 
     seller.walletBalance += payoutAmount;
+    seller.totalEarnings = (seller.totalEarnings || 0) + payoutAmount;
     await seller.save();
 
     order.status = 'completed';
-    order.escrowAmount = 0; // Empty the escrow
+    order.escrowAmount = 0;
     await order.save();
 
-    // Alert freelancer
+    // Referral credit: if buyer was referred, credit referrer 2% of platform fee
+    const buyer = await User.findById(order.client);
+    if (buyer && buyer.referredBy && !order.referralCredited) {
+      const referrer = await User.findById(buyer.referredBy);
+      if (referrer) {
+        const referralBonus = Math.round(platformFee * 0.02 * 100) / 100;
+        if (referralBonus > 0) {
+          referrer.walletBalance += referralBonus;
+          await referrer.save();
+          order.referralCredited = true;
+          await order.save();
+        }
+      }
+    }
+
     const notif = new Notification({
       recipient: order.freelancer,
       type: 'order_completed',
-      message: `Client accepted "${order.service.title}". $${payoutAmount} has been credited to your wallet!`,
+      message: `Client accepted "${order.service.title}". $${payoutAmount} credited (${Math.round(commissionRate * 100)}% fee applied).`,
       link: `/dashboard`
     });
     await notif.save();
@@ -445,9 +474,11 @@ const resolveDispute = async (req, res) => {
     if (!buyer || !seller) return res.status(404).json({ error: 'Buyer or seller not found' });
 
     if (outcome === 'released_to_seller') {
-      const platformFee = Math.round(order.escrowAmount * 0.10);
+      const commissionRate = getCommissionRate(seller);
+      const platformFee = Math.round(order.escrowAmount * commissionRate);
       const payoutAmount = order.escrowAmount - platformFee;
       seller.walletBalance += payoutAmount;
+      seller.totalEarnings = (seller.totalEarnings || 0) + payoutAmount;
     } else {
       buyer.walletBalance += order.escrowAmount;
     }

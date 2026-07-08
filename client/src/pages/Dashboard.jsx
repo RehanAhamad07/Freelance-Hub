@@ -153,43 +153,43 @@ const Dashboard = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 mt-8 relative">
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Welcome, {user?.name}</h1>
-          <p className="text-gray-500 dark:text-gray-400">Your Dashboard</p>
+          <h1 className="text-3xl font-display font-extrabold text-gray-900 dark:text-white">Welcome back, {user?.name}</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Manage your services, track orders, and monitor earnings</p>
         </div>
-        <Link to="/create-service" className="flex items-center gap-2 bg-primary hover:bg-green-600 text-white px-5 py-2.5 rounded-lg shadow font-medium transition-all">
-          <Plus size={20} /> Create New Gig
+        <Link to="/create-service" className="btn-success flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl shadow-3d-sm text-sm hover:scale-103 whitespace-nowrap self-start sm:self-auto">
+          <Plus size={18} /> Create New Gig
         </Link>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        <motion.div initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center gap-4">
-          <div className="p-4 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl"><Package size={28} /></div>
+        <motion.div initial={{opacity:0, y:15}} animate={{opacity:1, y:0}} className="card p-6 flex items-center gap-4 hover-3d">
+          <div className="p-4 bg-blue-50 dark:bg-blue-950/40 text-brand-blue rounded-2xl shadow-3d-sm"><Package size={26} /></div>
           <div>
-            <p className="text-2xl font-bold dark:text-white">{orders.length}</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Total Orders</p>
+            <p className="text-2xl font-display font-extrabold text-gray-900 dark:text-white">{orders.length}</p>
+            <p className="text-xs font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase mt-0.5">Total Orders</p>
           </div>
         </motion.div>
         
-        <motion.div initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} transition={{delay: 0.1}} className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center gap-4">
-          <div className="p-4 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-xl"><Briefcase size={28} /></div>
+        <motion.div initial={{opacity:0, y:15}} animate={{opacity:1, y:0}} transition={{delay: 0.05}} className="card p-6 flex items-center gap-4 hover-3d">
+          <div className="p-4 bg-green-50 dark:bg-green-950/40 text-brand-green rounded-2xl shadow-3d-sm"><Briefcase size={26} /></div>
           <div>
-            <p className="text-2xl font-bold dark:text-white">{services.length}</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Active Gigs</p>
+            <p className="text-2xl font-display font-extrabold text-gray-900 dark:text-white">{services.length}</p>
+            <p className="text-xs font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase mt-0.5">Active Gigs</p>
           </div>
         </motion.div>
 
-        <motion.div initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} transition={{delay: 0.2}} className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center gap-4">
-          <div className="p-4 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-xl"><MessageSquare size={28} /></div>
+        <motion.div initial={{opacity:0, y:15}} animate={{opacity:1, y:0}} transition={{delay: 0.1}} className="card p-6 flex items-center gap-4 hover-3d">
+          <div className="p-4 bg-purple-50 dark:bg-purple-950/40 text-brand-purple rounded-2xl shadow-3d-sm"><MessageSquare size={26} /></div>
           <div>
-            <p className="text-2xl font-bold dark:text-white">Active</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Messages</p>
+            <p className="text-2xl font-display font-extrabold text-gray-900 dark:text-white">Active</p>
+            <p className="text-xs font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase mt-0.5">Messages</p>
           </div>
         </motion.div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+      <div className="card p-6">
         <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Recent Orders</h2>
         {orders.length === 0 ? (
           <p className="text-gray-500 dark:text-gray-400">No orders yet.</p>

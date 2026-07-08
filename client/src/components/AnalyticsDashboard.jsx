@@ -83,31 +83,31 @@ const AnalyticsDashboard = () => {
       {/* Quick Stats Row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <motion.div initial={{opacity:0,y:15}} animate={{opacity:1,y:0}} transition={{delay:0}}
-          className="bg-gradient-to-br from-emerald-500 to-green-600 p-5 rounded-2xl text-white shadow-lg shadow-emerald-500/20">
-          <DollarSign size={20} className="opacity-70 mb-2" />
-          <p className="text-2xl font-black">${totalEarned.toLocaleString()}</p>
-          <p className="text-xs opacity-80 font-medium mt-1">Total Earned</p>
+          className="bg-gradient-to-br from-emerald-500 to-emerald-600 p-5 rounded-2xl text-white shadow-3d-lg shadow-emerald-500/10 hover-3d">
+          <DollarSign size={20} className="opacity-80 mb-2 text-emerald-100" />
+          <p className="text-2xl font-display font-extrabold">${totalEarned.toLocaleString()}</p>
+          <p className="text-xs opacity-85 font-bold tracking-wider mt-1.5 uppercase">Total Earned</p>
         </motion.div>
 
         <motion.div initial={{opacity:0,y:15}} animate={{opacity:1,y:0}} transition={{delay:0.05}}
-          className="bg-gradient-to-br from-blue-500 to-indigo-600 p-5 rounded-2xl text-white shadow-lg shadow-blue-500/20">
-          <Target size={20} className="opacity-70 mb-2" />
-          <p className="text-2xl font-black">{proposalStats.winRate}%</p>
-          <p className="text-xs opacity-80 font-medium mt-1">Proposal Win Rate</p>
+          className="bg-gradient-to-br from-brand-blue to-brand-indigo p-5 rounded-2xl text-white shadow-3d-lg shadow-blue-500/10 hover-3d">
+          <Target size={20} className="opacity-80 mb-2 text-blue-100" />
+          <p className="text-2xl font-display font-extrabold">{proposalStats.winRate}%</p>
+          <p className="text-xs opacity-85 font-bold tracking-wider mt-1.5 uppercase">Win Rate</p>
         </motion.div>
 
         <motion.div initial={{opacity:0,y:15}} animate={{opacity:1,y:0}} transition={{delay:0.1}}
-          className="bg-gradient-to-br from-violet-500 to-purple-600 p-5 rounded-2xl text-white shadow-lg shadow-violet-500/20">
-          <Eye size={20} className="opacity-70 mb-2" />
-          <p className="text-2xl font-black">{profileViews.reduce((s, p) => s + p.views, 0).toLocaleString()}</p>
-          <p className="text-xs opacity-80 font-medium mt-1">Profile Views</p>
+          className="bg-gradient-to-br from-brand-purple to-purple-700 p-5 rounded-2xl text-white shadow-3d-lg shadow-purple-500/10 hover-3d">
+          <Eye size={20} className="opacity-80 mb-2 text-purple-100" />
+          <p className="text-2xl font-display font-extrabold">{profileViews.reduce((s, p) => s + p.views, 0).toLocaleString()}</p>
+          <p className="text-xs opacity-85 font-bold tracking-wider mt-1.5 uppercase">Profile Views</p>
         </motion.div>
 
         <motion.div initial={{opacity:0,y:15}} animate={{opacity:1,y:0}} transition={{delay:0.15}}
-          className="bg-gradient-to-br from-amber-500 to-orange-600 p-5 rounded-2xl text-white shadow-lg shadow-amber-500/20">
-          <TrendingUp size={20} className="opacity-70 mb-2" />
-          <p className="text-2xl font-black">{orderStats.completed}</p>
-          <p className="text-xs opacity-80 font-medium mt-1">Completed Orders</p>
+          className="bg-gradient-to-br from-amber-500 to-brand-pink p-5 rounded-2xl text-white shadow-3d-lg shadow-amber-500/10 hover-3d">
+          <TrendingUp size={20} className="opacity-80 mb-2 text-amber-100" />
+          <p className="text-2xl font-display font-extrabold">{orderStats.completed}</p>
+          <p className="text-xs opacity-85 font-bold tracking-wider mt-1.5 uppercase">Completed</p>
         </motion.div>
       </div>
 
@@ -116,7 +116,7 @@ const AnalyticsDashboard = () => {
         {/* Level Progress */}
         {levelInfo && (
           <motion.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:0.18}}
-            className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+            className="card p-6">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 rounded-xl" style={{background: levelInfo.color + '22'}}>
                 <Trophy size={20} style={{color: levelInfo.color}} />
@@ -149,7 +149,7 @@ const AnalyticsDashboard = () => {
         {/* Referral Program */}
         {referralCode && (
           <motion.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:0.2}}
-            className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+            className="card p-6">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-xl"><Gift size={20} className="text-purple-600 dark:text-purple-400" /></div>
               <div>
@@ -172,7 +172,7 @@ const AnalyticsDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Revenue Trend Chart */}
         <motion.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:0.2}}
-          className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+          className="card p-6">
           <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Revenue Trend</h3>
           <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Last 6 months</p>
           <ResponsiveContainer width="100%" height={240}>
@@ -200,7 +200,7 @@ const AnalyticsDashboard = () => {
 
         {/* Profile Views Chart */}
         <motion.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:0.25}}
-          className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+          className="card p-6">
           <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Profile Views</h3>
           <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Last 6 months</p>
           <ResponsiveContainer width="100%" height={240}>
@@ -223,7 +223,7 @@ const AnalyticsDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Proposal Pie Chart */}
         <motion.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:0.3}}
-          className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+          className="card p-6">
           <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Proposal Breakdown</h3>
           <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">{proposalStats.total} total proposals</p>
           {hasProposals ? (
@@ -256,7 +256,7 @@ const AnalyticsDashboard = () => {
 
         {/* Order Status Cards */}
         <motion.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:0.35}}
-          className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+          className="lg:col-span-2 card p-6">
           <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Order Status</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {[

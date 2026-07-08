@@ -46,7 +46,12 @@ const serviceSchema = new mongoose.Schema({
   reviewsCount: {
     type: Number,
     default: 0,
-  }
+  },
+  addons: [{
+    title: { type: String, required: true },
+    price: { type: Number, required: true },
+    description: { type: String, default: '' }
+  }]
 }, { timestamps: true });
 
 module.exports = mongoose.model('Service', serviceSchema);

@@ -101,18 +101,18 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="fixed w-full z-50 bg-white/80 dark:bg-dark/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 transition-colors duration-300">
+    <nav className="fixed w-full z-50 bg-white/70 dark:bg-dark/70 backdrop-blur-md border-b border-gray-200/50 dark:border-dark-border/40 transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex-shrink-0 flex items-center">
-            <Link to="/" className="text-2xl font-black text-primary tracking-tighter">
-              freelance<span className="text-gray-900 dark:text-white">hub.</span>
+            <Link to="/" className="text-2xl font-display font-extrabold tracking-tighter bg-gradient-to-r from-brand-green to-emerald-500 bg-clip-text text-transparent hover:scale-102 transition-transform">
+              freelance<span className="text-gray-900 dark:text-white font-medium">hub.</span>
             </Link>
           </div>
           
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-6">
-            <button onClick={toggleDarkMode} className="text-gray-600 dark:text-gray-300 hover:text-primary transition mt-1">
+            <button onClick={toggleDarkMode} className="text-gray-500 dark:text-gray-400 hover:text-brand-indigo hover:scale-110 transition mt-1 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-dark-border/50">
               {darkMode ? <Sun size={20} /> : <Moon size={20} />}
             </button>
             
@@ -122,40 +122,40 @@ const Navbar = () => {
                 placeholder="Find services" 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white rounded-full pl-4 pr-10 py-1.5 outline-none text-sm border border-transparent focus:border-primary transition-all w-48 focus:w-64"
+                className="bg-gray-100/80 dark:bg-dark/60 text-gray-900 dark:text-white rounded-full pl-4 pr-10 py-1.5 outline-none text-sm border border-gray-200/30 dark:border-dark-border focus:border-brand-blue/80 focus:bg-white dark:focus:bg-dark-card transition-all w-48 focus:w-64 shadow-[inset_0_2px_4px_rgba(0,0,0,0.01)]"
               />
-              <button type="submit" className="absolute right-3 text-gray-500 hover:text-primary">
+              <button type="submit" className="absolute right-3 text-gray-400 hover:text-brand-blue transition">
                 <SearchIcon size={16} />
               </button>
             </form>
 
-            <Link to="/" className="text-gray-700 dark:text-gray-300 hover:text-primary font-medium transition">Home</Link>
-            <Link to="/services" className="text-gray-700 dark:text-gray-300 hover:text-primary font-medium transition">Services</Link>
-            <Link to="/jobs" className="text-gray-700 dark:text-gray-300 hover:text-primary font-medium transition">Jobs</Link>
+            <Link to="/" className="nav-link-hover">Home</Link>
+            <Link to="/services" className="nav-link-hover">Services</Link>
+            <Link to="/jobs" className="nav-link-hover">Jobs</Link>
             
             {user ? (
               <div className="flex items-center gap-1.5 sm:gap-2 mr-2">
-                <Link to="/chat" className="relative p-2.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/10 dark:hover:text-blue-400 rounded-full transition duration-300 group" title="Messages">
-                  <MessageSquare size={22} strokeWidth={1.75} className="group-hover:scale-110 transition-transform" />
+                <Link to="/chat" className="relative p-2.5 text-gray-500 hover:text-brand-blue hover:bg-blue-50 dark:hover:bg-brand-blue/10 dark:hover:text-brand-blue rounded-full transition duration-300 group" title="Messages">
+                  <MessageSquare size={21} strokeWidth={1.75} className="group-hover:scale-110 transition-transform" />
                 </Link>
-                <Link to="/saved" className="relative p-2.5 text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 dark:hover:text-red-400 rounded-full transition duration-300 group" title="Saved Items">
-                  <Heart size={22} strokeWidth={1.75} className="group-hover:scale-110 transition-transform" />
+                <Link to="/saved" className="relative p-2.5 text-gray-500 hover:text-brand-pink hover:bg-pink-50 dark:hover:bg-brand-pink/10 dark:hover:text-brand-pink rounded-full transition duration-300 group" title="Saved Items">
+                  <Heart size={21} strokeWidth={1.75} className="group-hover:scale-110 transition-transform" />
                 </Link>
 
                 {/* Wallet Balance */}
-                <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-full px-3 py-1 ml-2 mr-2">
-                  <span className="text-sm font-bold text-primary">${user.walletBalance !== undefined ? user.walletBalance : '...'}</span>
+                <div className="flex items-center bg-emerald-50/80 dark:bg-emerald-950/20 border border-emerald-100/60 dark:border-emerald-900/40 rounded-full px-3.5 py-1 ml-2 mr-2 shadow-3d-sm">
+                  <span className="text-sm font-bold text-brand-green">${user.walletBalance !== undefined ? user.walletBalance : '...'}</span>
                 </div>
                 
                 {/* Notification Bell */}
                 <div className="relative" ref={notifRef}>
                   <button 
                     onClick={() => setIsNotifOpen(!isNotifOpen)}
-                    className={`relative p-2.5 text-gray-500 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 dark:hover:text-orange-400 rounded-full transition duration-300 group ${isNotifOpen ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
+                    className={`relative p-2.5 text-gray-500 hover:text-brand-purple hover:bg-purple-50 dark:hover:bg-brand-purple/10 dark:hover:text-brand-purple rounded-full transition duration-300 group ${isNotifOpen ? 'bg-gray-100 dark:bg-dark-card' : ''}`}
                   >
-                    <Bell size={22} strokeWidth={1.75} className="group-hover:scale-110 group-hover:rotate-12 transition-transform" />
+                    <Bell size={21} strokeWidth={1.75} className="group-hover:scale-110 group-hover:rotate-12 transition-transform" />
                     {unreadCount > 0 && (
-                      <span className="absolute top-1 right-1 flex items-center justify-center min-w-[20px] h-[20px] px-1.5 text-[11px] font-black text-white bg-red-500 border-2 border-white dark:border-gray-900 rounded-full transform translate-x-1/4 -translate-y-1/4 shadow-sm">
+                      <span className="absolute top-1 right-1 flex items-center justify-center min-w-[20px] h-[20px] px-1.5 text-[10px] font-bold text-white bg-gradient-to-r from-red-500 to-brand-pink border-2 border-white dark:border-dark-card rounded-full transform translate-x-1/4 -translate-y-1/4 shadow-sm animate-pulse-slow">
                         {unreadCount > 99 ? '99+' : unreadCount}
                       </span>
                     )}
@@ -164,16 +164,16 @@ const Navbar = () => {
                   <AnimatePresence>
                     {isNotifOpen && (
                       <motion.div 
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                        transition={{ duration: 0.2 }}
-                        className="absolute right-0 mt-3 w-80 sm:w-96 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl z-50 overflow-hidden"
+                        initial={{ opacity: 0, y: 12, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 12, scale: 0.95 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute right-0 mt-3 w-80 sm:w-96 glass-dropdown rounded-2xl z-50 overflow-hidden shadow-3d-lg dark:shadow-3d-dark-lg"
                       >
-                        <div className="p-4 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50 dark:bg-gray-800/50">
-                          <h3 className="font-bold text-gray-900 dark:text-white">Notifications</h3>
+                        <div className="p-4 border-b border-gray-100 dark:border-dark-border/60 flex justify-between items-center bg-gray-50/50 dark:bg-dark-card/50">
+                          <h3 className="font-bold text-gray-900 dark:text-white font-display">Notifications</h3>
                           {unreadCount > 0 && (
-                            <button onClick={markAllAsRead} className="text-xs font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400">
+                            <button onClick={markAllAsRead} className="text-xs font-bold text-brand-blue hover:text-brand-indigo transition">
                               Mark all as read
                             </button>
                           )}
@@ -225,31 +225,31 @@ const Navbar = () => {
                   <AnimatePresence>
                     {isDropdownOpen && (
                       <motion.div 
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                        transition={{ duration: 0.2 }}
-                        className="absolute right-0 mt-3 w-48 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg z-50 overflow-hidden"
+                        initial={{ opacity: 0, y: 12, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 12, scale: 0.95 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute right-0 mt-3 w-52 glass-dropdown rounded-2xl z-50 overflow-hidden shadow-3d-lg dark:shadow-3d-dark-lg"
                       >
                         <div className="py-2">
                           <Link 
                             to={`/profile/${user.id || user._id}`} 
                             onClick={() => setIsDropdownOpen(false)}
-                            className="block px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                            className="block px-4 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800/40 hover:text-brand-indigo dark:hover:text-white transition"
                           >
                             Profile
                           </Link>
                           <Link 
                             to="/dashboard" 
                             onClick={() => setIsDropdownOpen(false)}
-                            className="block px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                            className="block px-4 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800/40 hover:text-brand-indigo dark:hover:text-white transition"
                           >
                             Dashboard
                           </Link>
                           <Link 
                             to="/transactions" 
                             onClick={() => setIsDropdownOpen(false)}
-                            className="block px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                            className="block px-4 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800/40 hover:text-brand-indigo dark:hover:text-white transition"
                           >
                             Transactions
                           </Link>
@@ -257,7 +257,7 @@ const Navbar = () => {
                             <Link 
                               to="/admin" 
                               onClick={() => setIsDropdownOpen(false)}
-                              className="block px-4 py-2.5 text-sm text-purple-600 font-semibold hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                              className="block px-4 py-2.5 text-sm text-brand-purple font-bold hover:bg-purple-50 dark:hover:bg-purple-950/20 transition"
                             >
                               Admin Portal
                             </Link>
@@ -265,24 +265,24 @@ const Navbar = () => {
                           <Link 
                             to="/create-job" 
                             onClick={() => setIsDropdownOpen(false)}
-                            className="block px-4 py-2.5 text-sm text-primary font-medium hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                            className="block px-4 py-2.5 text-sm text-brand-green font-bold hover:bg-green-50 dark:hover:bg-green-950/20 transition"
                           >
                             Post a Job
                           </Link>
                           <Link 
                             to="/create-service" 
                             onClick={() => setIsDropdownOpen(false)}
-                            className="block px-4 py-2.5 text-sm text-primary font-medium hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                            className="block px-4 py-2.5 text-sm text-brand-green font-bold hover:bg-green-50 dark:hover:bg-green-950/20 transition"
                           >
                             Post a Gig
                           </Link>
-                          <div className="h-px bg-gray-100 dark:bg-gray-800 my-1"></div>
+                          <div className="h-px bg-gray-100 dark:bg-dark-border my-1"></div>
                           <button 
                             onClick={() => {
                               logout();
                               setIsDropdownOpen(false);
                             }}
-                            className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 transition font-medium"
+                            className="w-full text-left px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 transition font-bold"
                           >
                             Logout
                           </button>
@@ -293,12 +293,12 @@ const Navbar = () => {
                 </div>
               </div>
             ) : (
-              <>
-                <Link to="/login" className="text-gray-700 dark:text-gray-300 hover:text-primary font-medium transition">Sign in</Link>
-                <Link to="/register" className="bg-primary hover:bg-green-600 text-white px-5 py-2 rounded-full font-medium transition-all transform hover:scale-105 active:scale-95">
+              <div className="flex items-center gap-4">
+                <Link to="/login" className="nav-link-hover">Sign in</Link>
+                <Link to="/register" className="btn-success px-5 py-2 rounded-full text-sm hover:scale-105 active:scale-98">
                   Join
                 </Link>
-              </>
+              </div>
             )}
           </div>
 

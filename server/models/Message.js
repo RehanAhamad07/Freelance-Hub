@@ -24,6 +24,14 @@ const messageSchema = new mongoose.Schema({
   read: {
     type: Boolean,
     default: false,
+  },
+  flagged: {
+    type: Boolean,
+    default: false,
+  },
+  flagReasons: {
+    type: [String],
+    default: [],
   }
 }, { timestamps: true });
 

@@ -17,7 +17,8 @@ const notificationSchema = new mongoose.Schema({
       'work_delivered',
       'order_completed',
       'revision_requested',
-      'order_disputed'
+      'order_disputed',
+      'job_match'
     ],
     default: 'system'
   },

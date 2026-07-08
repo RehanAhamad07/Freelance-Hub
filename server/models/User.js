@@ -87,6 +87,58 @@ const userSchema = new mongoose.Schema({
   },
   resetPasswordExpires: {
     type: Date,
+  },
+  blockedUsers: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
+  mutedConversations: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Conversation'
+  }],
+  verificationStatus: {
+    type: String,
+    enum: ['unverified', 'pending', 'verified', 'rejected'],
+    default: 'unverified',
+  },
+  verificationDocument: {
+    type: String,
+    default: '',
+  },
+  isTopRated: {
+    type: Boolean,
+    default: false,
+  },
+  paymentVerified: {
+    type: Boolean,
+    default: true, // defaults to true for demo clients
+  },
+  portfolioItems: [{
+    title: { type: String, default: '' },
+    link: { type: String, default: '' },
+    description: { type: String, default: '' },
+    mediaUrl: { type: String, default: '' }
+  }],
+  themeColor: {
+    type: String,
+    default: '#3B82F6', // default blue
+  },
+  headerBackground: {
+    type: String,
+    default: '', // URL to custom header image/gradient
+  },
+  totalEarnings: {
+    type: Number,
+    default: 0,
+  },
+  referralCode: {
+    type: String,
+    unique: true,
+    sparse: true,
+  },
+  referredBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
   }
 }, { timestamps: true });
 

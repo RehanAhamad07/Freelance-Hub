@@ -5,7 +5,8 @@ const {
   getAdminUsers,
   banUser,
   unbanUser,
-  getRevenueAnalytics
+  getRevenueAnalytics,
+  updateVerificationStatus
 } = require('../controllers/admin.controller');
 
 const router = express.Router();
@@ -15,6 +16,7 @@ router.use(authMiddleware, requireAdmin);
 router.get('/users', getAdminUsers);
 router.post('/users/:id/ban', banUser);
 router.post('/users/:id/unban', unbanUser);
+router.post('/users/:id/verification', updateVerificationStatus);
 router.get('/analytics/revenue', getRevenueAnalytics);
 
 module.exports = router;

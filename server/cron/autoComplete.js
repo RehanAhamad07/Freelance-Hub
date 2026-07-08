@@ -1,6 +1,7 @@
 const cron = require('node-cron');
 const Order = require('../models/Order');
 const User = require('../models/User');
+const { getCommissionRate } = require('../utils/gamification');
 
 // Run every day at midnight
 cron.schedule('0 0 * * *', async () => {
@@ -9,8 +10,6 @@ cron.schedule('0 0 * * *', async () => {
     const threeDaysAgo = new Date();
     threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
 
-    // Find orders that have been 'delivered' and the delivery happened > 3 days ago
-    // We check updatedAt since it gets updated when status changes to 'delivered'
     const orders = await Order.find({
       status: 'delivered',
       updatedAt: { $lte: threeDaysAgo }
@@ -21,17 +20,19 @@ cron.schedule('0 0 * * *', async () => {
       
       const seller = await User.findById(order.freelancer);
       if (seller && order.escrowAmount > 0) {
-        const platformFee = Math.round(order.escrowAmount * 0.10);
+        const commissionRate = getCommissionRate(seller);
+        const platformFee = Math.round(order.escrowAmount * commissionRate);
         const payoutAmount = order.escrowAmount - platformFee;
 
         seller.walletBalance += payoutAmount;
+        seller.totalEarnings = (seller.totalEarnings || 0) + payoutAmount;
         await seller.save();
 
         order.status = 'completed';
         order.escrowAmount = 0;
         await order.save();
         
-        console.log(`[Cron] Order ${order._id} completed and funds released.`);
+        console.log(`[Cron] Order ${order._id} completed. ${Math.round(commissionRate*100)}% fee applied.`);
       }
     }
   } catch (error) {
