@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { mockServices, mockReviews, mockOrders } from './mockData';
+import { mockReviews, mockOrders } from './mockData';
 
 const api = axios.create({
   // baseURL: 'http://localhost:5002/api',
@@ -30,45 +30,7 @@ api.interceptors.response.use(
       const url = error.config.url.toLowerCase();
       
       if (error.config.method === 'get') {
-        if (url.includes('/services')) {
-          const parts = url.split('/');
-          const idIndex = parts.indexOf('services') + 1;
-          const idParam = parts[idIndex];
 
-          if (idParam && !idParam.includes('?')) {
-            // It's a single service GET request
-            const singleService = mockServices.find(s => s._id === idParam) || mockServices[0];
-            return Promise.resolve({ data: singleService, status: 200 });
-          } else {
-            // Get all services with filters
-            let data = [...mockServices];
-            
-            // Search filter
-            if (error.config.params?.search) {
-               data = data.filter(s => s.title.toLowerCase().includes(error.config.params.search.toLowerCase()) || s.category.toLowerCase().includes(error.config.params.search.toLowerCase()));
-            }
-            
-            // Category filter
-            if (error.config.params?.category) {
-              data = data.filter(s => s.category === error.config.params.category);
-            }
-            
-            // Price filter
-            if (error.config.params?.minPrice) {
-              data = data.filter(s => s.price >= parseFloat(error.config.params.minPrice));
-            }
-            if (error.config.params?.maxPrice) {
-              data = data.filter(s => s.price <= parseFloat(error.config.params.maxPrice));
-            }
-            
-            // Rating filter
-            if (error.config.params?.minRating) {
-              data = data.filter(s => s.rating >= parseFloat(error.config.params.minRating));
-            }
-            
-            return Promise.resolve({ data, status: 200 });
-          }
-        }
         if (url.includes('/orders')) {
           return Promise.resolve({ data: mockOrders, status: 200 });
         }
@@ -97,7 +59,7 @@ api.interceptors.response.use(
              status: 200
            });
         }
-        if (url.includes('/orders') || url.includes('/services')) {
+        if (url.includes('/orders')) {
            return Promise.resolve({ data: { message: 'Success (Mocked)' }, status: 201 });
         }
       }
