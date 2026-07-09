@@ -327,12 +327,12 @@ const Chat = () => {
 
   return (
     <div className="w-full min-h-screen bg-gray-50 dark:bg-gray-950 pt-20 pb-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
         {/* Main Chat Container */}
         <div className="h-[calc(100vh-140px)] flex bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
           
           {/* Sidebar - Conversations List */}
-          <div className="w-80 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 flex flex-col">
+          <div className={`${currentChat ? 'hidden lg:flex' : 'flex'} w-full lg:w-80 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 flex-col`}>
             
             {/* Header */}
             <div className="p-6 border-b border-gray-200 dark:border-gray-800 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 sticky top-0">
@@ -411,12 +411,21 @@ const Chat = () => {
           </div>
 
           {/* Chat Area */}
-          <div className="flex-1 flex flex-col h-full">
+          <div className={`${currentChat ? 'flex' : 'hidden lg:flex'} flex-1 flex-col h-full`}>
             {currentChat ? (
               <>
                 {/* Chat Header */}
-                <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 flex justify-between items-center sticky top-0 z-10 shadow-sm">
-                  <div className="flex items-center gap-4">
+                <div className="px-3 sm:px-6 py-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 flex justify-between items-center sticky top-0 z-10 shadow-sm">
+                  <div className="flex items-center gap-2 sm:gap-4">
+                    <button 
+                      onClick={() => setCurrentChat(null)}
+                      className="lg:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-600 dark:text-gray-400 -ml-2 mr-1"
+                      title="Back to conversations"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
                     {currentChat.participants.find(p => String(p._id || p) !== userId)?.profilePicture ? (
                       <img 
                         src={currentChat.participants.find(p => String(p._id || p) !== userId)?.profilePicture} 
@@ -495,7 +504,7 @@ const Chat = () => {
                 </div>
                 
                 {/* Messages Area */}
-                <div className="flex-1 overflow-y-auto px-6 py-8 bg-gray-50 dark:bg-gray-950">
+                <div className="flex-1 overflow-y-auto px-3 sm:px-6 py-6 sm:py-8 bg-gray-50 dark:bg-gray-950">
                   <div className="space-y-4 max-w-4xl">
                     <AnimatePresence>
                       {messages.length === 0 ? (
@@ -561,7 +570,7 @@ const Chat = () => {
                 </div>
 
                 {/* Input Area */}
-                <div className="px-6 py-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
+                <div className="px-3 sm:px-6 py-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
                   <form onSubmit={handleSubmit} className="flex gap-3 items-end relative">
                     {/* File Input */}
                     <input 
