@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 export const showToast = {
   success: (message, title = 'Success') => {
     toast.success(`${title}: ${message}`, {
+      toastId: `${title}-${message}`,
       position: 'top-right',
       autoClose: 3000,
       hideProgressBar: false,
@@ -18,6 +19,7 @@ export const showToast = {
 
   error: (message, title = 'Error') => {
     toast.error(`${title}: ${message}`, {
+      toastId: `${title}-${message}`,
       position: 'top-right',
       autoClose: 4000,
       hideProgressBar: false,
@@ -30,6 +32,7 @@ export const showToast = {
 
   info: (message, title = 'Info') => {
     toast.info(`${title}: ${message}`, {
+      toastId: `${title}-${message}`,
       position: 'top-right',
       autoClose: 3000,
       hideProgressBar: false,
@@ -42,6 +45,7 @@ export const showToast = {
 
   warning: (message, title = 'Warning') => {
     toast.warning(`${title}: ${message}`, {
+      toastId: `${title}-${message}`,
       position: 'top-right',
       autoClose: 4000,
       hideProgressBar: false,
@@ -54,6 +58,7 @@ export const showToast = {
 
   loading: (message, title = 'Loading') => {
     return toast.loading(`${title}: ${message}`, {
+      toastId: `${title}-${message}`,
       position: 'top-right',
       hideProgressBar: true,
       closeOnClick: false,
