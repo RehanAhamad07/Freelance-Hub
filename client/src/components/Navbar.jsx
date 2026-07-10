@@ -17,6 +17,7 @@ const Navbar = () => {
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const dropdownRef = useRef(null);
   const notifRef = useRef(null);
+  const mobileNotifRef = useRef(null);
   const navigate = useNavigate();
   const { socket } = useContext(SocketContext);
   const [notifications, setNotifications] = useState([]);
@@ -27,7 +28,9 @@ const Navbar = () => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsDropdownOpen(false);
       }
-      if (notifRef.current && !notifRef.current.contains(event.target)) {
+      const outsideDesktopNotif = !notifRef.current || !notifRef.current.contains(event.target);
+      const outsideMobileNotif = !mobileNotifRef.current || !mobileNotifRef.current.contains(event.target);
+      if (outsideDesktopNotif && outsideMobileNotif) {
         setIsNotifOpen(false);
       }
     };
@@ -303,11 +306,86 @@ const Navbar = () => {
           </div>
 
           {/* Mobile menu button */}
-          <div className="md:hidden flex items-center gap-4">
-            <button onClick={toggleDarkMode} className="text-gray-600 dark:text-gray-300">
+          <div className="md:hidden flex items-center gap-1.5 sm:gap-4">
+            {user && (
+              <>
+                {/* Chat Icon */}
+                <Link 
+                  to="/chat" 
+                  onClick={() => setIsOpen(false)}
+                  className="relative p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/50 rounded-full transition"
+                  title="Messages"
+                >
+                  <MessageSquare size={20} strokeWidth={1.75} />
+                </Link>
+
+                {/* Notification Bell */}
+                <div className="relative" ref={mobileNotifRef}>
+                  <button 
+                    onClick={() => setIsNotifOpen(!isNotifOpen)}
+                    className={`relative p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/50 rounded-full transition ${isNotifOpen ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
+                  >
+                    <Bell size={20} strokeWidth={1.75} />
+                    {unreadCount > 0 && (
+                      <span className="absolute top-0.5 right-0.5 flex items-center justify-center min-w-[16px] h-[16px] px-1 text-[9px] font-bold text-white bg-gradient-to-r from-red-500 to-brand-pink border border-white dark:border-dark-card rounded-full shadow-sm animate-pulse-slow">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </span>
+                    )}
+                  </button>
+
+                  <AnimatePresence>
+                    {isNotifOpen && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 12, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 12, scale: 0.95 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute right-[-60px] mt-3 w-80 glass-dropdown rounded-2xl z-50 overflow-hidden shadow-3d-lg dark:shadow-3d-dark-lg"
+                      >
+                        <div className="p-4 border-b border-gray-100 dark:border-dark-border/60 flex justify-between items-center bg-gray-50/50 dark:bg-dark-card/50">
+                          <h3 className="font-bold text-gray-900 dark:text-white font-display">Notifications</h3>
+                          {unreadCount > 0 && (
+                            <button onClick={markAllAsRead} className="text-xs font-bold text-brand-blue hover:text-brand-indigo transition">
+                              Mark all as read
+                            </button>
+                          )}
+                        </div>
+                        <div className="max-h-80 overflow-y-auto divide-y divide-gray-50 dark:divide-gray-800/50">
+                          {notifications.length === 0 ? (
+                            <div className="p-6 text-center text-sm text-gray-500">No notifications yet.</div>
+                          ) : (
+                            notifications.map(notif => (
+                              <div 
+                                key={notif._id} 
+                                onClick={() => handleNotifClick(notif)}
+                                className={`p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/80 transition flex gap-3 items-start ${!notif.isRead ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}
+                              >
+                                <div className={`mt-0.5 p-2 rounded-full shrink-0 ${!notif.isRead ? 'bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400' : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'}`}>
+                                  {notif.type === 'transaction_credit' || notif.type === 'proposal_accepted' ? <CheckCircle2 size={16} /> : <Bell size={16} />}
+                                </div>
+                                <div className="flex-1">
+                                  <p className={`text-sm ${!notif.isRead ? 'font-bold text-gray-900 dark:text-white' : 'font-medium text-gray-600 dark:text-gray-300'}`}>
+                                    {notif.message}
+                                  </p>
+                                  <p className="text-xs text-gray-400 mt-1">
+                                    {new Date(notif.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' })}
+                                  </p>
+                                </div>
+                                {!notif.isRead && <div className="w-2 h-2 rounded-full bg-blue-500 mt-2 shrink-0"></div>}
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </>
+            )}
+            <button onClick={toggleDarkMode} className="text-gray-600 dark:text-gray-300 p-2 hover:bg-gray-100 dark:hover:bg-gray-800/50 rounded-full transition">
               {darkMode ? <Sun size={20} /> : <Moon size={20} />}
             </button>
-            <button onClick={() => setIsOpen(!isOpen)} className="text-gray-700 dark:text-gray-300">
+            <button onClick={() => setIsOpen(!isOpen)} className="text-gray-700 dark:text-gray-300 p-2 hover:bg-gray-100 dark:hover:bg-gray-800/50 rounded-full transition">
               {isOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
