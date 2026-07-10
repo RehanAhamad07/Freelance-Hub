@@ -92,7 +92,7 @@ const CreateService = () => {
   const currentCategory = formData.category;
 
   return (
-    <div className="min-h-screen py-12 sm:py-20 pb-24 sm:pb-40 bg-[#fafafa] dark:bg-[#0f1115] relative font-sans">
+    <div className="min-h-screen py-12 sm:py-20 pb-24 sm:pb-40 bg-[#fafafa] dark:bg-[#0f1115] relative font-sans overflow-x-hidden">
       {/* Decorative gradient orbs mapped to the selected category color */}
       <div className={`absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b opacity-20 dark:opacity-10 pointer-events-none transition-colors duration-1000 ${formData.category.color.replace('text-', 'from-').replace('-500', '-400')} to-transparent`}></div>
       <div className={`absolute top-32 -left-32 w-96 h-96 rounded-full blur-[100px] opacity-20 pointer-events-none transition-colors duration-1000 ${formData.category.color.replace('text-', 'bg-')}`}></div>
