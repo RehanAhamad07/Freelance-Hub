@@ -326,8 +326,8 @@ const Chat = () => {
   };
 
   return (
-    <div className="w-full h-[calc(100vh-64px)] bg-gray-50 dark:bg-gray-950 flex flex-col">
-      <div className="w-full flex-1 max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 py-0 sm:py-4 flex flex-col min-h-0">
+    <div className={`w-full bg-gray-50 dark:bg-gray-950 flex flex-col ${currentChat ? 'fixed inset-0 z-[60] lg:relative lg:inset-auto lg:z-auto lg:h-[calc(100vh-64px)]' : 'h-[calc(100vh-64px)]'}`}>
+      <div className={`w-full flex-1 max-w-7xl mx-auto flex flex-col min-h-0 ${currentChat ? 'px-0 py-0 lg:px-6 lg:py-4' : 'px-0 sm:px-6 lg:px-8 py-0 sm:py-4'}`}>
         {/* Main Chat Container */}
         <div className="flex-1 flex bg-white dark:bg-gray-900 sm:rounded-2xl shadow-lg sm:border border-gray-200 dark:border-gray-800 overflow-hidden">
           
@@ -504,7 +504,7 @@ const Chat = () => {
                 </div>
                 
                 {/* Messages Area */}
-                <div className="flex-1 overflow-y-auto px-3 sm:px-6 py-6 sm:py-8 bg-gray-50 dark:bg-gray-950">
+                <div className="flex-1 overflow-y-auto overscroll-y-contain px-3 sm:px-6 py-6 sm:py-8 bg-gray-50 dark:bg-gray-950">
                   <div className="space-y-4 max-w-4xl">
                     <AnimatePresence>
                       {messages.length === 0 ? (
@@ -649,6 +649,11 @@ const Chat = () => {
                       type="text" 
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
+                      onFocus={() => {
+                        setTimeout(() => {
+                          scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
+                        }, 100);
+                      }}
                       placeholder="Type a message..."
                       className="flex-1 min-w-0 px-4 py-2.5 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all"
                     />
