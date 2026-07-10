@@ -326,10 +326,10 @@ const Chat = () => {
   };
 
   return (
-    <div className="w-full min-h-screen bg-gray-50 dark:bg-gray-950 pt-20 pb-8">
-      <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
+    <div className="w-full h-[calc(100vh-64px)] bg-gray-50 dark:bg-gray-950 flex flex-col">
+      <div className="w-full flex-1 max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 py-0 sm:py-4 flex flex-col min-h-0">
         {/* Main Chat Container */}
-        <div className="h-[calc(100vh-140px)] flex bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
+        <div className="flex-1 flex bg-white dark:bg-gray-900 sm:rounded-2xl shadow-lg sm:border border-gray-200 dark:border-gray-800 overflow-hidden">
           
           {/* Sidebar - Conversations List */}
           <div className={`${currentChat ? 'hidden lg:flex' : 'flex'} w-full lg:w-80 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 flex-col`}>
@@ -411,7 +411,7 @@ const Chat = () => {
           </div>
 
           {/* Chat Area */}
-          <div className={`${currentChat ? 'flex' : 'hidden lg:flex'} flex-1 flex-col h-full`}>
+          <div className={`${currentChat ? 'flex' : 'hidden lg:flex'} flex-1 flex-col h-full min-w-0`}>
             {currentChat ? (
               <>
                 {/* Chat Header */}
@@ -570,8 +570,8 @@ const Chat = () => {
                 </div>
 
                 {/* Input Area */}
-                <div className="px-3 sm:px-6 py-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
-                  <form onSubmit={handleSubmit} className="flex gap-3 items-end relative">
+                <div className="px-2 sm:px-6 py-3 sm:py-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
+                  <form onSubmit={handleSubmit} className="flex gap-1.5 sm:gap-3 items-end relative">
                     {/* File Input */}
                     <input 
                       type="file" 
@@ -582,26 +582,26 @@ const Chat = () => {
                     />
 
                     {/* Emoji, Image, Voice Buttons */}
-                    <div className="flex gap-2">
+                    <div className="flex gap-1 sm:gap-2">
                       <motion.button 
                         type="button"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => fileInputRef.current?.click()}
-                        className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
+                        className="p-2 sm:p-2.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
                         title="Attach image"
                       >
-                        <ImageIcon size={20} />
+                        <ImageIcon size={20} className="w-5 h-5" />
                       </motion.button>
                       <motion.button 
                         type="button"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                        className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors text-gray-600 dark:text-gray-400 hover:text-yellow-500"
+                        className="p-2 sm:p-2.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors text-gray-600 dark:text-gray-400 hover:text-yellow-500"
                         title="Add emoji"
                       >
-                        <Smile size={20} />
+                        <Smile size={20} className="w-5 h-5" />
                       </motion.button>
                       <motion.button 
                         type="button"
@@ -611,10 +611,10 @@ const Chat = () => {
                         onMouseUp={handleStopRecording}
                         onTouchStart={handleStartRecording}
                         onTouchEnd={handleStopRecording}
-                        className={`p-2.5 rounded-lg transition-colors ${isRecording ? 'bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400' : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400'}`}
+                        className={`p-2 sm:p-2.5 rounded-lg transition-colors ${isRecording ? 'bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400' : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400'}`}
                         title="Hold to record voice"
                       >
-                        {isRecording ? <Square size={20} /> : <Mic size={20} />}
+                        {isRecording ? <Square size={20} className="w-5 h-5" /> : <Mic size={20} className="w-5 h-5" />}
                       </motion.button>
                     </div>
 
@@ -625,7 +625,7 @@ const Chat = () => {
                           initial={{ opacity: 0, y: 10, scale: 0.95 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                          className="absolute bottom-16 left-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-3 rounded-xl shadow-lg z-50 grid grid-cols-8 gap-1"
+                          className="absolute bottom-14 sm:bottom-16 left-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-3 rounded-xl shadow-lg z-50 grid grid-cols-8 gap-1"
                         >
                           {COMMON_EMOJIS.map(emoji => (
                             <button 
@@ -650,7 +650,7 @@ const Chat = () => {
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
                       placeholder="Type a message..."
-                      className="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all"
+                      className="flex-1 min-w-0 px-4 py-2.5 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all"
                     />
 
                     {/* Send Button */}
@@ -659,10 +659,10 @@ const Chat = () => {
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       disabled={!newMessage.trim()}
-                      className="p-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white rounded-lg transition-colors flex-shrink-0 disabled:cursor-not-allowed"
+                      className="p-2 sm:p-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white rounded-lg transition-colors flex-shrink-0 disabled:cursor-not-allowed"
                       title="Send message"
                     >
-                      <Send size={20} />
+                      <Send size={20} className="w-5 h-5" />
                     </motion.button>
                   </form>
                 </div>
