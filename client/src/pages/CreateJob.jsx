@@ -105,7 +105,7 @@ const CreateJob = () => {
   const currentCategory = formData.category;
 
   return (
-    <div className="min-h-screen py-20 pb-40 bg-[#fafafa] dark:bg-[#0f1115] relative font-sans">
+    <div className="min-h-screen py-12 sm:py-20 pb-24 sm:pb-40 bg-[#fafafa] dark:bg-[#0f1115] relative font-sans">
       {/* Decorative gradient orbs mapped to the selected category color */}
       <div className={`absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b opacity-20 dark:opacity-10 pointer-events-none transition-colors duration-1000 ${currentCategory.color.replace('text-', 'from-').replace('-500', '-400')} to-transparent`}></div>
       <div className={`absolute top-32 -left-32 w-96 h-96 rounded-full blur-[100px] opacity-20 pointer-events-none transition-colors duration-1000 ${currentCategory.color.replace('text-', 'bg-')}`}></div>
@@ -116,7 +116,7 @@ const CreateJob = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="bg-gradient-to-br from-white via-gray-50 to-white dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 backdrop-blur-2xl rounded-3xl shadow-2xl border border-gradient-to-r from-white/80 to-white/40 dark:from-gray-800/80 dark:to-gray-800/40 p-8 md:p-14 relative overflow-hidden"
+          className="bg-gradient-to-br from-white via-gray-50 to-white dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 backdrop-blur-2xl rounded-3xl shadow-2xl border border-gradient-to-r from-white/80 to-white/40 dark:from-gray-800/80 dark:to-gray-800/40 p-5 sm:p-8 md:p-14 relative overflow-hidden"
         >
           {/* Decorative corner gradient */}
           <div className={`absolute -top-40 -right-40 w-80 h-80 rounded-full opacity-5 pointer-events-none ${colorMap[formData.category.color].accent}`}></div>
@@ -129,7 +129,7 @@ const CreateJob = () => {
             >
               <formData.category.icon size={40} className={formData.category.color} strokeWidth={1.5} />
             </motion.div>
-            <h1 className="text-5xl md:text-6xl font-black text-gray-900 dark:text-white tracking-tight mb-3 bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-gray-900 dark:text-white tracking-tight mb-3 bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
               Post a Job
             </h1>
             <p className="text-lg text-gray-600 dark:text-gray-300 font-medium max-w-lg">
@@ -261,7 +261,7 @@ const CreateJob = () => {
                   <input 
                     type="number" name="budget" value={formData.budget} onChange={handleChange} required min="5"
                     placeholder="0.00"
-                    className="w-full bg-transparent pl-3 pr-2 py-4 text-gray-900 dark:text-white placeholder-gray-400 outline-none font-bold text-xl"
+                    className="w-full min-w-0 bg-transparent pl-3 pr-2 py-4 text-gray-900 dark:text-white placeholder-gray-400 outline-none font-bold text-xl"
                   />
                   <select 
                     name="currency" 
