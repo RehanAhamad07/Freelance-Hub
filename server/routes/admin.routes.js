@@ -6,7 +6,11 @@ const {
   banUser,
   unbanUser,
   getRevenueAnalytics,
-  updateVerificationStatus
+  updateVerificationStatus,
+  getAdminServices,
+  deleteAdminService,
+  getAdminJobs,
+  deleteAdminJob
 } = require('../controllers/admin.controller');
 
 const router = express.Router();
@@ -18,5 +22,13 @@ router.post('/users/:id/ban', banUser);
 router.post('/users/:id/unban', unbanUser);
 router.post('/users/:id/verification', updateVerificationStatus);
 router.get('/analytics/revenue', getRevenueAnalytics);
+
+// Services (Gigs) management
+router.get('/services', getAdminServices);
+router.delete('/services/:id', deleteAdminService);
+
+// Jobs management
+router.get('/jobs', getAdminJobs);
+router.delete('/jobs/:id', deleteAdminJob);
 
 module.exports = router;

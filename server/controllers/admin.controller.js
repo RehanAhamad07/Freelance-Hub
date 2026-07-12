@@ -1,5 +1,7 @@
 const User = require('../models/User');
 const Order = require('../models/Order');
+const Service = require('../models/Service');
+const Job = require('../models/Job');
 
 const getAdminUsers = async (req, res) => {
   try {
@@ -126,10 +128,62 @@ const updateVerificationStatus = async (req, res) => {
   }
 };
 
+const getAdminServices = async (req, res) => {
+  try {
+    const services = await Service.find({})
+      .populate('freelancer', 'name email profilePicture rating')
+      .sort({ createdAt: -1 });
+    res.json(services);
+  } catch (error) {
+    console.error('Get admin services error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+const deleteAdminService = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const service = await Service.findByIdAndDelete(id);
+    if (!service) return res.status(404).json({ error: 'Service not found' });
+    res.json({ message: 'Service deleted successfully' });
+  } catch (error) {
+    console.error('Delete admin service error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+const getAdminJobs = async (req, res) => {
+  try {
+    const jobs = await Job.find({})
+      .populate('client', 'name email profilePicture rating')
+      .sort({ createdAt: -1 });
+    res.json(jobs);
+  } catch (error) {
+    console.error('Get admin jobs error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+const deleteAdminJob = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const job = await Job.findByIdAndDelete(id);
+    if (!job) return res.status(404).json({ error: 'Job not found' });
+    res.json({ message: 'Job deleted successfully' });
+  } catch (error) {
+    console.error('Delete admin job error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
 module.exports = {
   getAdminUsers,
   banUser,
   unbanUser,
   getRevenueAnalytics,
-  updateVerificationStatus
+  updateVerificationStatus,
+  getAdminServices,
+  deleteAdminService,
+  getAdminJobs,
+  deleteAdminJob
 };

@@ -15,6 +15,12 @@ const AdminDashboard = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [detailUser, setDetailUser] = useState(null);
 
+  // Gigs and Jobs Admin state
+  const [gigs, setGigs] = useState([]);
+  const [jobs, setJobs] = useState([]);
+  const [gigSearchQuery, setGigSearchQuery] = useState('');
+  const [jobSearchQuery, setJobSearchQuery] = useState('');
+
   const loadUsers = async () => {
     const res = await api.get('/admin/users');
     setUsers(res.data);
@@ -30,10 +36,26 @@ const AdminDashboard = () => {
     setAnalytics(res.data);
   };
 
+  const loadGigs = async () => {
+    const res = await api.get('/admin/services');
+    setGigs(res.data);
+  };
+
+  const loadJobs = async () => {
+    const res = await api.get('/admin/jobs');
+    setJobs(res.data);
+  };
+
   const loadAll = async () => {
     setLoading(true);
     try {
-      await Promise.all([loadUsers(), loadDisputes(), loadAnalytics()]);
+      await Promise.all([
+        loadUsers(),
+        loadDisputes(),
+        loadAnalytics(),
+        loadGigs(),
+        loadJobs()
+      ]);
     } catch (error) {
       showToast.error(error.response?.data?.error || 'Failed to load admin data', 'Error Loading Data');
     } finally {
@@ -95,6 +117,28 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleDeleteGig = async (gigId) => {
+    if (!window.confirm('Are you sure you want to remove this gig/service? This action cannot be undone.')) return;
+    try {
+      await api.delete(`/admin/services/${gigId}`);
+      showToast.success('Gig has been deleted successfully', 'Gig Removed');
+      await loadGigs();
+    } catch (error) {
+      showToast.error(error.response?.data?.error || 'Failed to delete gig', 'Error');
+    }
+  };
+
+  const handleDeleteJob = async (jobId) => {
+    if (!window.confirm('Are you sure you want to remove this job post? This action cannot be undone.')) return;
+    try {
+      await api.delete(`/admin/jobs/${jobId}`);
+      showToast.success('Job post has been deleted successfully', 'Job Removed');
+      await loadJobs();
+    } catch (error) {
+      showToast.error(error.response?.data?.error || 'Failed to delete job post', 'Error');
+    }
+  };
+
   const pendingVerifications = users.filter(u => u.verificationStatus === 'pending');
   const allVerifiable = users.filter(u => u.verificationStatus && u.verificationStatus !== 'unverified');
 
@@ -119,6 +163,20 @@ const AdminDashboard = () => {
   const filteredUsers = users.filter(u =>
     u.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     u.email?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredGigs = gigs.filter(g =>
+    g.title?.toLowerCase().includes(gigSearchQuery.toLowerCase()) ||
+    g.description?.toLowerCase().includes(gigSearchQuery.toLowerCase()) ||
+    g.freelancer?.name?.toLowerCase().includes(gigSearchQuery.toLowerCase()) ||
+    g.freelancer?.email?.toLowerCase().includes(gigSearchQuery.toLowerCase())
+  );
+
+  const filteredJobs = jobs.filter(j =>
+    j.title?.toLowerCase().includes(jobSearchQuery.toLowerCase()) ||
+    j.description?.toLowerCase().includes(jobSearchQuery.toLowerCase()) ||
+    j.client?.name?.toLowerCase().includes(jobSearchQuery.toLowerCase()) ||
+    j.client?.email?.toLowerCase().includes(jobSearchQuery.toLowerCase())
   );
 
   return (
@@ -153,6 +211,8 @@ const AdminDashboard = () => {
           { id: 'verifications', label: '🛡️ Verifications', badge: pendingVerifications.length },
           { id: 'disputes', label: '⚠️ Disputes' },
           { id: 'analytics', label: '💰 Revenue' },
+          { id: 'gigs', label: '🏪 Gigs' },
+          { id: 'jobs', label: '💼 Job Posts' },
         ].map(tab => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id)}
             className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === tab.id ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}>
@@ -472,6 +532,189 @@ const AdminDashboard = () => {
           </div>
         </div>
       )}
+      {/* GIGS TAB */}
+      {activeTab === 'gigs' && (
+        <div className="space-y-4">
+          <div className="relative max-w-md">
+            <input
+              type="text"
+              placeholder="Search gigs by title, description, or freelancer..."
+              value={gigSearchQuery}
+              onChange={(e) => setGigSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
+            />
+            <span className="absolute left-3 top-3.5 text-gray-400">🔍</span>
+          </div>
+
+          <div className="grid gap-4">
+            {filteredGigs.map((g) => (
+              <div
+                key={g._id}
+                className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-5 shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row gap-4"
+              >
+                {g.image && (
+                  <div className="w-full md:w-32 h-24 flex-shrink-0">
+                    <img
+                      src={getFileUrl(g.image)}
+                      alt={g.title}
+                      className="w-full h-full rounded-xl object-cover border border-gray-200 dark:border-gray-700"
+                    />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <h3 className="font-bold text-lg text-gray-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition">
+                      <Link to={`/service/${g._id}`} target="_blank" rel="noopener noreferrer">
+                        {g.title}
+                      </Link>
+                    </h3>
+                    <span className="px-3 py-1 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded-full text-xs font-black">
+                      {g.currency === 'INR' ? '₹' : '$'}{g.price}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                    Category: <span className="font-semibold text-gray-600 dark:text-gray-300">{g.category}</span> · Delivery: <span className="font-semibold text-gray-600 dark:text-gray-300">{g.deliveryTime}</span>
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 line-clamp-2">
+                    {g.description}
+                  </p>
+                  <div className="flex items-center gap-2 mt-3 p-2 bg-gray-50 dark:bg-gray-900/40 rounded-xl w-fit border border-gray-100 dark:border-gray-800">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-xs uppercase">
+                      {g.freelancer?.name?.charAt(0)}
+                    </div>
+                    <div className="text-xs">
+                      <span className="font-bold text-gray-700 dark:text-gray-300">
+                        {g.freelancer?.name || 'Unknown Freelancer'}
+                      </span>
+                      <span className="text-gray-400 mx-1.5">|</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        {g.freelancer?.email || 'No Email'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-row md:flex-col justify-end gap-2 flex-shrink-0 items-end">
+                  <Link
+                    to={`/service/${g._id}`}
+                    target="_blank"
+                    className="px-4 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-xl text-xs font-bold hover:bg-indigo-100 transition whitespace-nowrap"
+                  >
+                    👁 View Gig ↗
+                  </Link>
+                  <button
+                    onClick={() => handleDeleteGig(g._id)}
+                    className="px-4 py-2 bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 hover:bg-red-600 hover:text-white rounded-xl text-xs font-bold transition whitespace-nowrap"
+                  >
+                    🗑 Remove Gig
+                  </button>
+                </div>
+              </div>
+            ))}
+            {filteredGigs.length === 0 && (
+              <div className="text-center py-12 text-gray-400 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700">
+                🏪 No gigs match your search.
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* JOBS TAB */}
+      {activeTab === 'jobs' && (
+        <div className="space-y-4">
+          <div className="relative max-w-md">
+            <input
+              type="text"
+              placeholder="Search job posts by title, description, or client..."
+              value={jobSearchQuery}
+              onChange={(e) => setJobSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
+            />
+            <span className="absolute left-3 top-3.5 text-gray-400">🔍</span>
+          </div>
+
+          <div className="grid gap-4">
+            {filteredJobs.map((j) => (
+              <div
+                key={j._id}
+                className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-5 shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row gap-4"
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <h3 className="font-bold text-lg text-gray-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition">
+                      <Link to={`/jobs/${j._id}`} target="_blank" rel="noopener noreferrer">
+                        {j.title}
+                      </Link>
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                        j.status === 'open' ? 'bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-400' :
+                        j.status === 'in_progress' ? 'bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400' :
+                        'bg-gray-100 text-gray-700 dark:bg-gray-950/40 dark:text-gray-400'
+                      }`}>
+                        {j.status}
+                      </span>
+                      <span className="px-3 py-1 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-full text-xs font-black">
+                        {j.currency === 'INR' ? '₹' : '$'}{j.budget}
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                    Category: <span className="font-semibold text-gray-600 dark:text-gray-300">{j.category}</span> · Delivery: <span className="font-semibold text-gray-600 dark:text-gray-300">{j.deliveryTime}</span>
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 line-clamp-2">
+                    {j.description}
+                  </p>
+                  {j.skills && j.skills.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-3">
+                      {j.skills.map((s, idx) => (
+                        <span key={idx} className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded text-[11px] font-medium">
+                          {s}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 mt-3 p-2 bg-gray-50 dark:bg-gray-900/40 rounded-xl w-fit border border-gray-100 dark:border-gray-800">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-xs uppercase">
+                      {j.client?.name?.charAt(0)}
+                    </div>
+                    <div className="text-xs">
+                      <span className="font-bold text-gray-700 dark:text-gray-300">
+                        {j.client?.name || 'Unknown Client'}
+                      </span>
+                      <span className="text-gray-400 mx-1.5">|</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        {j.client?.email || 'No Email'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-row md:flex-col justify-end gap-2 flex-shrink-0 items-end">
+                  <Link
+                    to={`/jobs/${j._id}`}
+                    target="_blank"
+                    className="px-4 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-xl text-xs font-bold hover:bg-indigo-100 transition whitespace-nowrap"
+                  >
+                    👁 View Job ↗
+                  </Link>
+                  <button
+                    onClick={() => handleDeleteJob(j._id)}
+                    className="px-4 py-2 bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 hover:bg-red-600 hover:text-white rounded-xl text-xs font-bold transition whitespace-nowrap"
+                  >
+                    🗑 Remove Job
+                  </button>
+                </div>
+              </div>
+            ))}
+            {filteredJobs.length === 0 && (
+              <div className="text-center py-12 text-gray-400 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700">
+                💼 No jobs match your search.
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* USER DETAIL DRAWER */}
       {detailUser && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex justify-end" onClick={() => setDetailUser(null)}>
