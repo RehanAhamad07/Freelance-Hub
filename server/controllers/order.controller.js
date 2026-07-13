@@ -63,6 +63,10 @@ const createOrder = async (req, res) => {
     const service = await Service.findById(serviceId);
     if (!service) return res.status(404).json({ error: 'Service not found' });
 
+    if (service.freelancer.toString() === req.user.userId) {
+      return res.status(400).json({ error: 'You cannot place an order on your own service.' });
+    }
+
     const buyer = await User.findById(req.user.userId);
     if (!buyer) return res.status(404).json({ error: 'User not found' });
 

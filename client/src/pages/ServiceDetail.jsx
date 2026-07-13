@@ -62,7 +62,11 @@ const ServiceDetail = () => {
       navigate('/login');
       return;
     }
-    // Restriction removed: anyone can place an order
+    const userId = user?.id || user?._id;
+    if (userId === service.freelancer?._id) {
+      toast.error('You cannot purchase your own service');
+      return;
+    }
 
     try {
       await api.post('/orders', { serviceId: id, addons: selectedAddons });
@@ -323,12 +327,21 @@ const ServiceDetail = () => {
             </div>
           )}
 
-          <button 
-            onClick={handleOrder}
-            className="w-full btn-success py-4 hover:scale-[1.02] shadow-3d-md hover:shadow-glow-primary rounded-2xl text-base font-bold flex items-center justify-center gap-2"
-          >
-            Continue to Order{selectedAddons.length > 0 ? ` ($${service.price + (service.addons || []).filter(a => selectedAddons.includes(a._id)).reduce((s, a) => s + a.price, 0)})` : ''}
-          </button>
+          {user && (user.id || user._id) === service.freelancer?._id ? (
+            <button 
+              disabled
+              className="w-full bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 py-4 rounded-2xl text-base font-bold flex items-center justify-center gap-2 cursor-not-allowed"
+            >
+              Your Own Service
+            </button>
+          ) : (
+            <button 
+              onClick={handleOrder}
+              className="w-full btn-success py-4 hover:scale-[1.02] shadow-3d-md hover:shadow-glow-primary rounded-2xl text-base font-bold flex items-center justify-center gap-2"
+            >
+              Continue to Order{selectedAddons.length > 0 ? ` ($${service.price + (service.addons || []).filter(a => selectedAddons.includes(a._id)).reduce((s, a) => s + a.price, 0)})` : ''}
+            </button>
+          )}
         </motion.div>
       </div>
     </div>
