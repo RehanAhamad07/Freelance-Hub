@@ -40,25 +40,9 @@ api.interceptors.response.use(
         if (url.includes('/chat')) {
           return Promise.resolve({ data: [], status: 200 });
         }
-        if (url.includes('/auth/profile')) {
-          // Keep user logged in if they have a token locally
-          return Promise.resolve({ 
-            data: { id: 'user1', name: 'Demo User', email: 'user@test.com', role: 'client' }, 
-            status: 200 
-          });
-        }
       }
 
       if (error.config.method === 'post') {
-        if (url.includes('/auth/login') || url.includes('/auth/register')) {
-           return Promise.resolve({
-             data: { 
-               token: 'mock_token_123', 
-               user: { id: 'user1', name: JSON.parse(error.config.data).name || 'Demo User', email: JSON.parse(error.config.data).email, role: 'client' }
-             },
-             status: 200
-           });
-        }
         if (url.includes('/orders')) {
            return Promise.resolve({ data: { message: 'Success (Mocked)' }, status: 201 });
         }
