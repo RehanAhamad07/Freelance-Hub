@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState, useMemo } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../services/api';
@@ -11,49 +11,48 @@ const Transactions = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // Financial metrics
-  const [totalEarnings, setTotalEarnings] = useState(0);
-  const [totalSpent, setTotalSpent] = useState(0);
-  const [balance, setBalance] = useState(0);
-  
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState('deposit');
   const [amount, setAmount] = useState('');
 
+  // Dynamically calculate financial metrics instantly when preferredCurrency, user, or orders change
+  const { totalEarnings, totalSpent, balance } = useMemo(() => {
+    let earnings = 0;
+    let spent = 0;
+    const userId = user?.id || user?._id;
+
+    if (user && orders.length > 0) {
+      orders.forEach(o => {
+        const isFreelancer = o.freelancer && (o.freelancer._id === userId || o.freelancer === userId);
+        const isClient = o.client && (o.client._id === userId || o.client === userId);
+
+        const orderCurrency = o.service?.currency || o.currency || 'USD';
+        const convertedPrice = convertPrice(o.price, orderCurrency);
+
+        if (isFreelancer && o.status === 'completed') {
+          earnings += convertedPrice;
+        }
+        if (isClient) {
+          spent += convertedPrice;
+        }
+      });
+    }
+
+    const walletBal = convertPrice(Number(user?.walletBalance || 0), 'USD');
+
+    return {
+      totalEarnings: earnings,
+      totalSpent: spent,
+      balance: walletBal
+    };
+  }, [orders, user, preferredCurrency, convertPrice]);
+
   useEffect(() => {
     const fetchOrders = async () => {
       try {
         const res = await api.get('/orders');
-        const fetchedOrders = res.data;
-        setOrders(fetchedOrders);
-        
-        let earnings = 0;
-        let spent = 0;
-        
-        const userId = user.id || user._id;
-
-        fetchedOrders.forEach(o => {
-          const isFreelancer = o.freelancer && (o.freelancer._id === userId || o.freelancer === userId);
-          const isClient = o.client && (o.client._id === userId || o.client === userId);
-
-          const orderCurrency = o.service?.currency || o.currency || 'USD';
-          const convertedPrice = convertPrice(o.price, orderCurrency);
-
-          if (isFreelancer && o.status === 'completed') {
-            earnings += convertedPrice;
-          }
-          if (isClient) {
-            spent += convertedPrice;
-          }
-        });
-
-        setTotalEarnings(earnings);
-        setTotalSpent(spent);
-        
-        // Use real wallet balance so it matches navbar/account funds.
-        setBalance(convertPrice(Number(user.walletBalance || 0), 'USD'));
-        
+        setOrders(res.data);
       } catch (error) {
         console.error("Failed to fetch transactions", error);
       } finally {
@@ -61,7 +60,7 @@ const Transactions = () => {
       }
     };
     if (user) fetchOrders();
-  }, [user, preferredCurrency]);
+  }, [user]);
 
   const openModal = (type) => {
     setModalType(type);
@@ -89,8 +88,6 @@ const Transactions = () => {
         amount: amountInUsd
       });
       const updatedBalanceUsd = Number(txRes.data.walletBalance || 0);
-      const updatedBalance = convertPrice(updatedBalanceUsd, 'USD');
-      setBalance(updatedBalance);
       setUser((prev) => prev ? { ...prev, walletBalance: updatedBalanceUsd } : prev);
 
       toast.success(modalType === 'deposit'
