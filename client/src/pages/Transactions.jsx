@@ -61,7 +61,7 @@ const Transactions = () => {
       }
     };
     if (user) fetchOrders();
-  }, [user]);
+  }, [user, preferredCurrency]);
 
   const openModal = (type) => {
     setModalType(type);

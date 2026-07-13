@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { motion } from 'framer-motion';
 import api from '../services/api';
+import { AuthContext } from '../context/AuthContext';
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
@@ -10,13 +11,14 @@ import { TrendingUp, Eye, Target, DollarSign, Loader2, Copy, Gift, Trophy } from
 const COLORS = ['#10B981', '#F59E0B', '#EF4444', '#6366F1'];
 
 const CustomTooltip = ({ active, payload, label }) => {
+  const { getCurrencySymbol } = useContext(AuthContext);
   if (active && payload && payload.length) {
     return (
       <div className="bg-white dark:bg-gray-800 px-4 py-3 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700">
         <p className="text-sm font-bold text-gray-900 dark:text-white mb-1">{label}</p>
         {payload.map((entry, i) => (
           <p key={i} className="text-sm" style={{ color: entry.color }}>
-            {entry.name}: {typeof entry.value === 'number' && entry.name !== 'Views' ? `$${entry.value.toLocaleString()}` : entry.value}
+            {entry.name}: {typeof entry.value === 'number' && entry.name !== 'Views' ? `${getCurrencySymbol()}${entry.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : entry.value}
           </p>
         ))}
       </div>
@@ -26,6 +28,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 const AnalyticsDashboard = () => {
+  const { preferredCurrency, convertPrice, formatPrice, getCurrencySymbol } = useContext(AuthContext);
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -85,7 +88,7 @@ const AnalyticsDashboard = () => {
         <motion.div initial={{opacity:0,y:15}} animate={{opacity:1,y:0}} transition={{delay:0}}
           className="bg-gradient-to-br from-emerald-500 to-emerald-600 p-5 rounded-2xl text-white shadow-3d-lg shadow-emerald-500/10 hover-3d">
           <DollarSign size={20} className="opacity-80 mb-2 text-emerald-100" />
-          <p className="text-2xl font-display font-extrabold">${totalEarned.toLocaleString()}</p>
+          <p className="text-2xl font-display font-extrabold">{formatPrice(totalEarned, 'USD')}</p>
           <p className="text-xs opacity-85 font-bold tracking-wider mt-1.5 uppercase">Total Earned</p>
         </motion.div>
 
@@ -176,7 +179,11 @@ const AnalyticsDashboard = () => {
           <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Revenue Trend</h3>
           <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Last 6 months</p>
           <ResponsiveContainer width="100%" height={240}>
-            <AreaChart data={monthlyRevenue} margin={{ top: 5, right: 10, left: -15, bottom: 0 }}>
+            <AreaChart data={(monthlyRevenue || []).map(item => ({
+              ...item,
+              earned: convertPrice(item.earned, 'USD'),
+              spent: convertPrice(item.spent, 'USD')
+            }))} margin={{ top: 5, right: 10, left: -15, bottom: 0 }}>
               <defs>
                 <linearGradient id="earnedGrad" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#10B981" stopOpacity={0.3} />

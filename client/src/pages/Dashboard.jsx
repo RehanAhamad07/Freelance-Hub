@@ -8,7 +8,7 @@ import { toast } from 'react-toastify';
 import AnalyticsDashboard from '../components/AnalyticsDashboard';
 
 const Dashboard = () => {
-  const { user } = useContext(AuthContext);
+  const { user, formatPrice } = useContext(AuthContext);
   const [orders, setOrders] = useState([]);
   const [services, setServices] = useState([]);
   const [loadingAction, setLoadingAction] = useState(null);
@@ -250,7 +250,7 @@ const Dashboard = () => {
                           {o.status.replace('_', ' ')}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-gray-900 dark:text-gray-100 font-bold">{(o.currency === 'INR' || o.service?.currency === 'INR') ? '₹' : '$'}{o.price}</td>
+                      <td className="py-3 px-4 text-gray-900 dark:text-gray-100 font-bold">{formatPrice(o.price, o.currency || o.service?.currency || 'USD')}</td>
                       <td className="py-3 px-4 text-gray-500 dark:text-gray-400 text-sm">{new Date(o.createdAt).toLocaleDateString()}</td>
                       <td className="py-3 px-4 text-right flex items-center justify-end gap-2 flex-wrap">
                         

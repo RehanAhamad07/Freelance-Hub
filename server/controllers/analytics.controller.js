@@ -18,7 +18,7 @@ const getDashboardAnalytics = async (req, res) => {
       $or: [{ freelancer: userId }, { client: userId }],
       status: 'completed',
       createdAt: { $gte: sixMonthsAgo }
-    }).select('price createdAt freelancer client');
+    }).select('price currency createdAt freelancer client');
 
     const monthlyRevenue = [];
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -34,11 +34,17 @@ const getDashboardAnalytics = async (req, res) => {
 
       const earned = monthOrders
         .filter(o => o.freelancer.toString() === userId)
-        .reduce((sum, o) => sum + (o.price * 0.9), 0); // after 10% platform fee
+        .reduce((sum, o) => {
+          const usdPrice = o.currency === 'INR' ? o.price / 80 : o.price;
+          return sum + (usdPrice * 0.9);
+        }, 0); // after 10% platform fee
 
       const spent = monthOrders
         .filter(o => o.client.toString() === userId)
-        .reduce((sum, o) => sum + o.price, 0);
+        .reduce((sum, o) => {
+          const usdPrice = o.currency === 'INR' ? o.price / 80 : o.price;
+          return sum + usdPrice;
+        }, 0);
 
       monthlyRevenue.push({
         month: monthNames[monthDate.getMonth()],
@@ -58,7 +64,7 @@ const getDashboardAnalytics = async (req, res) => {
     // --- Order Stats ---
     const allOrders = await Order.find({
       $or: [{ freelancer: userId }, { client: userId }]
-    }).select('status createdAt price');
+    }).select('status currency createdAt price');
 
     const orderStats = {
       total: allOrders.length,
@@ -85,7 +91,10 @@ const getDashboardAnalytics = async (req, res) => {
     // --- Total Revenue ---
     const totalEarned = completedOrders
       .filter(o => o.freelancer.toString() === userId)
-      .reduce((sum, o) => sum + (o.price * 0.9), 0);
+      .reduce((sum, o) => {
+        const usdPrice = o.currency === 'INR' ? o.price / 80 : o.price;
+        return sum + (usdPrice * 0.9);
+      }, 0);
 
     // Get freelancer level
     const currentUser = await User.findById(userId).select('totalEarnings rating completedJobs referralCode');
