@@ -232,9 +232,9 @@ const Navbar = () => {
                     className="flex items-center ml-2 border-l border-gray-200/60 dark:border-gray-700/60 pl-4 hover:scale-105 active:scale-95 transition cursor-pointer outline-none focus:outline-none bg-transparent"
                   >
                     {user.profilePicture ? (
-                      <img src={user.profilePicture} alt="Profile" className="w-8.5 h-8.5 rounded-full object-cover ring-2 ring-emerald-100/80 dark:ring-emerald-950/60 shadow-md" />
+                      <img src={user.profilePicture} alt="Profile" className="w-10 h-10 rounded-full object-cover shrink-0 aspect-square ring-2 ring-emerald-100/80 dark:ring-emerald-950/60 shadow-md" />
                     ) : (
-                      <div className="w-8.5 h-8.5 rounded-full bg-gradient-to-br from-brand-green to-emerald-500 hover:from-emerald-500 hover:to-teal-500 flex items-center justify-center font-bold text-white text-sm shadow-md ring-2 ring-emerald-100/80 dark:ring-emerald-950/60 transition-all duration-300">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-green to-emerald-500 hover:from-emerald-500 hover:to-teal-500 flex items-center justify-center font-bold text-white text-base shadow-md ring-2 ring-emerald-100/80 dark:ring-emerald-950/60 transition-all duration-300 shrink-0 aspect-square">
                         {user.name?.charAt(0).toUpperCase() || 'U'}
                       </div>
                     )}
