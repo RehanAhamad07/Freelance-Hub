@@ -229,16 +229,15 @@ const Navbar = () => {
                 <div className="relative" ref={dropdownRef}>
                   <button 
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    className="flex items-center gap-3 ml-2 border-l border-gray-200 dark:border-gray-700 pl-4 hover:opacity-80 transition cursor-pointer outline-none focus:outline-none bg-transparent"
+                    className="flex items-center ml-2 border-l border-gray-200/60 dark:border-gray-700/60 pl-4 hover:scale-105 active:scale-95 transition cursor-pointer outline-none focus:outline-none bg-transparent"
                   >
                     {user.profilePicture ? (
-                      <img src={user.profilePicture} alt="Profile" className="w-8 h-8 rounded-full object-cover" />
+                      <img src={user.profilePicture} alt="Profile" className="w-8.5 h-8.5 rounded-full object-cover ring-2 ring-emerald-100/80 dark:ring-emerald-950/60 shadow-md" />
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center font-bold text-white text-xs">
-                        {user.name?.charAt(0) || 'U'}
+                      <div className="w-8.5 h-8.5 rounded-full bg-gradient-to-br from-brand-green to-emerald-500 hover:from-emerald-500 hover:to-teal-500 flex items-center justify-center font-bold text-white text-sm shadow-md ring-2 ring-emerald-100/80 dark:ring-emerald-950/60 transition-all duration-300">
+                        {user.name?.charAt(0).toUpperCase() || 'U'}
                       </div>
                     )}
-                    <span className="text-sm font-semibold text-gray-900 dark:text-white hidden lg:block">{user.name}</span>
                   </button>
 
                   <AnimatePresence>
