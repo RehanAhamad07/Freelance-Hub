@@ -63,21 +63,30 @@ const unbanUser = async (req, res) => {
 const getRevenueAnalytics = async (req, res) => {
   try {
     const completedOrders = await Order.find({ status: 'completed' })
-      .select('price createdAt')
+      .populate('service', 'currency')
+      .select('price currency service createdAt')
       .lean();
 
-    const totalGross = completedOrders.reduce((sum, o) => sum + (o.price || 0), 0);
-    const totalRevenue = Math.round(totalGross * 0.1);
-    const totalPayout = totalGross - totalRevenue;
+    const totalGross = completedOrders.reduce((sum, o) => {
+      const orderCurrency = o.service?.currency || o.currency || 'USD';
+      const usdPrice = orderCurrency === 'INR' ? o.price / 80 : o.price;
+      return sum + (usdPrice || 0);
+    }, 0);
+    const totalRevenue = Math.round(totalGross * 0.1 * 100) / 100;
+    const totalPayout = Math.round((totalGross - totalRevenue) * 100) / 100;
 
     const monthlyMap = new Map();
     for (const order of completedOrders) {
       const date = new Date(order.createdAt);
       const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
       const current = monthlyMap.get(key) || { gross: 0, revenue: 0, payout: 0, completedOrders: 0 };
-      current.gross += order.price || 0;
-      current.revenue += Math.round((order.price || 0) * 0.1);
-      current.payout += (order.price || 0) - Math.round((order.price || 0) * 0.1);
+      
+      const orderCurrency = order.service?.currency || order.currency || 'USD';
+      const usdPrice = orderCurrency === 'INR' ? order.price / 80 : order.price;
+
+      current.gross += usdPrice || 0;
+      current.revenue += Math.round((usdPrice || 0) * 0.1 * 100) / 100;
+      current.payout += (usdPrice || 0) - Math.round((usdPrice || 0) * 0.1 * 100) / 100;
       current.completedOrders += 1;
       monthlyMap.set(key, current);
     }
