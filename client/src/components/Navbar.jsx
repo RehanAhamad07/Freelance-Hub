@@ -132,7 +132,11 @@ const Navbar = () => {
               </button>
             </form>
 
-            <Link to="/" className="nav-link-hover">Home</Link>
+            {user ? (
+              <Link to="/dashboard" className="nav-link-hover">Dashboard</Link>
+            ) : (
+              <Link to="/" className="nav-link-hover">Home</Link>
+            )}
             <Link to="/services" className="nav-link-hover">Services</Link>
             <Link to="/jobs" className="nav-link-hover">Jobs</Link>
             
@@ -449,10 +453,17 @@ const Navbar = () => {
               <div>
                 <p className="text-[10px] font-bold tracking-wider text-gray-400 dark:text-gray-500 uppercase mb-2">Explore</p>
                 <div className="space-y-1">
-                  <Link to="/" onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800/40 rounded-xl transition">
-                    <Home size={18} className="text-gray-400 dark:text-gray-500" />
-                    Home
-                  </Link>
+                  {user ? (
+                    <Link to="/dashboard" onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800/40 rounded-xl transition">
+                      <LayoutDashboard size={18} className="text-gray-400 dark:text-gray-500" />
+                      Dashboard
+                    </Link>
+                  ) : (
+                    <Link to="/" onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800/40 rounded-xl transition">
+                      <Home size={18} className="text-gray-400 dark:text-gray-500" />
+                      Home
+                    </Link>
+                  )}
                   <Link to="/services" onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800/40 rounded-xl transition">
                     <Layers size={18} className="text-gray-400 dark:text-gray-500" />
                     Services
