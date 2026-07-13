@@ -83,12 +83,15 @@ const createOrder = async (req, res) => {
       }
     }
 
-    // Escrow logic: Deduct money from buyer wallet
-    if (buyer.walletBalance < totalPrice) {
+    // Escrow logic: Deduct money from buyer wallet (standardized in USD)
+    const orderCurrency = service.currency || 'USD';
+    const priceInUsd = orderCurrency === 'INR' ? totalPrice / 80 : totalPrice;
+
+    if (buyer.walletBalance < priceInUsd) {
       return res.status(400).json({ error: 'Insufficient wallet balance. Please top up your account.' });
     }
 
-    buyer.walletBalance -= totalPrice;
+    buyer.walletBalance -= priceInUsd;
     await buyer.save();
 
     const order = new Order({
@@ -96,8 +99,8 @@ const createOrder = async (req, res) => {
       freelancer: service.freelancer,
       service: service._id,
       price: totalPrice,
-      currency: service.currency || 'USD',
-      escrowAmount: totalPrice,
+      currency: orderCurrency,
+      escrowAmount: priceInUsd,
       selectedAddons,
       status: 'in_progress',
       deliveryTime: service.deliveryTime,
