@@ -20,6 +20,11 @@ const orderSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  currency: {
+    type: String,
+    enum: ['USD', 'INR'],
+    default: 'USD',
+  },
   status: {
     type: String,
     enum: ['pending', 'in_progress', 'delivered', 'completed', 'disputed', 'cancelled'],

@@ -8,6 +8,44 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Currency Preferences (INR / USD)
+  const [preferredCurrency, setPreferredCurrency] = useState(
+    localStorage.getItem('preferredCurrency') || 'USD'
+  );
+
+  const changePreferredCurrency = (curr) => {
+    localStorage.setItem('preferredCurrency', curr);
+    setPreferredCurrency(curr);
+  };
+
+  const getCurrencySymbol = () => {
+    return preferredCurrency === 'INR' ? '₹' : '$';
+  };
+
+  const convertPrice = (amount, originalCurrency = 'USD') => {
+    const num = Number(amount || 0);
+    if (preferredCurrency === originalCurrency) return num;
+    if (originalCurrency === 'USD' && preferredCurrency === 'INR') return num * 80;
+    if (originalCurrency === 'INR' && preferredCurrency === 'USD') return num / 80;
+    return num;
+  };
+
+  const formatPrice = (amount, originalCurrency = 'USD') => {
+    const num = Number(amount || 0);
+    if (preferredCurrency === originalCurrency) {
+      return preferredCurrency === 'INR' ? `₹${num.toLocaleString()}` : `$${num.toLocaleString()}`;
+    }
+    if (originalCurrency === 'USD' && preferredCurrency === 'INR') {
+      const converted = num * 80;
+      return `₹${converted.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+    if (originalCurrency === 'INR' && preferredCurrency === 'USD') {
+      const converted = num / 80;
+      return `$${converted.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+    return preferredCurrency === 'INR' ? `₹${num.toLocaleString()}` : `$${num.toLocaleString()}`;
+  };
+
   const refreshUser = async () => {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -126,7 +164,25 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, setUser, refreshUser, login, register, logout, loading, googleLogin, toggleSavedService, toggleSavedJob, forgotPassword, resetPassword }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      setUser, 
+      refreshUser, 
+      login, 
+      register, 
+      logout, 
+      loading, 
+      googleLogin, 
+      toggleSavedService, 
+      toggleSavedJob, 
+      forgotPassword, 
+      resetPassword,
+      preferredCurrency,
+      changePreferredCurrency,
+      convertPrice,
+      formatPrice,
+      getCurrencySymbol
+    }}>
       {children}
     </AuthContext.Provider>
   );

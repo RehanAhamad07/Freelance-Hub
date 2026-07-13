@@ -7,7 +7,7 @@ import { ArrowDownRight, ArrowUpRight, DollarSign, Wallet, Download, Activity, E
 import { toast } from 'react-toastify';
 
 const Transactions = () => {
-  const { user, refreshUser, setUser } = useContext(AuthContext);
+  const { user, refreshUser, setUser, preferredCurrency, convertPrice, formatPrice, getCurrencySymbol } = useContext(AuthContext);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   
@@ -37,11 +37,14 @@ const Transactions = () => {
           const isFreelancer = o.freelancer && (o.freelancer._id === userId || o.freelancer === userId);
           const isClient = o.client && (o.client._id === userId || o.client === userId);
 
+          const orderCurrency = o.currency || o.service?.currency || 'USD';
+          const convertedPrice = convertPrice(o.price, orderCurrency);
+
           if (isFreelancer && o.status === 'completed') {
-            earnings += o.price;
+            earnings += convertedPrice;
           }
           if (isClient) {
-            spent += o.price;
+            spent += convertedPrice;
           }
         });
 
@@ -49,7 +52,7 @@ const Transactions = () => {
         setTotalSpent(spent);
         
         // Use real wallet balance so it matches navbar/account funds.
-        setBalance(Number(user.walletBalance || 0));
+        setBalance(convertPrice(Number(user.walletBalance || 0), 'USD'));
         
       } catch (error) {
         console.error("Failed to fetch transactions", error);
@@ -80,24 +83,26 @@ const Transactions = () => {
     }
 
     try {
+      const amountInUsd = preferredCurrency === 'INR' ? val / 80 : val;
       const txRes = await api.post('/auth/wallet/transaction', {
         type: modalType === 'deposit' ? 'deposit' : 'withdraw',
-        amount: val
+        amount: amountInUsd
       });
-      const updatedBalance = Number(txRes.data.walletBalance || 0);
+      const updatedBalanceUsd = Number(txRes.data.walletBalance || 0);
+      const updatedBalance = convertPrice(updatedBalanceUsd, 'USD');
       setBalance(updatedBalance);
-      setUser((prev) => prev ? { ...prev, walletBalance: updatedBalance } : prev);
+      setUser((prev) => prev ? { ...prev, walletBalance: updatedBalanceUsd } : prev);
 
       toast.success(modalType === 'deposit'
-        ? `Successfully deposited $${val}`
-        : `Successfully withdrew $${val}`
+        ? `Successfully deposited ${preferredCurrency === 'INR' ? '₹' : '$'}${val}`
+        : `Successfully withdrew ${preferredCurrency === 'INR' ? '₹' : '$'}${val}`
       );
 
       await api.post('/notifications/notify', {
         type: modalType === 'deposit' ? 'transaction_credit' : 'transaction_debit',
         message: modalType === 'deposit'
-          ? `$${val.toFixed(2)} has been credited to your account.`
-          : `$${val.toFixed(2)} has been successfully withdrawn.`,
+          ? `${preferredCurrency === 'INR' ? '₹' : '$'}${val.toFixed(2)} has been credited to your account.`
+          : `${preferredCurrency === 'INR' ? '₹' : '$'}${val.toFixed(2)} has been successfully withdrawn.`,
         link: '/transactions'
       });
 
@@ -141,7 +146,7 @@ const Transactions = () => {
                     <Wallet size={20} className="text-blue-400" />
                     <p className="text-gray-400 text-sm font-semibold uppercase tracking-wider">Total Balance</p>
                   </div>
-                  <h2 className="text-5xl md:text-6xl font-black tracking-tight">${balance.toLocaleString('en-US', {minimumFractionDigits: 2})}</h2>
+                  <h2 className="text-5xl md:text-6xl font-black tracking-tight">{getCurrencySymbol()}{balance.toLocaleString(undefined, {minimumFractionDigits: 2})}</h2>
                   <div className="mt-4 flex items-center gap-3 text-sm">
                     <span className="flex items-center gap-1.5 text-green-400 font-semibold bg-green-500/10 px-3 py-1.5 rounded-full border border-green-500/20">
                       <Activity size={14} /> Available to withdraw
@@ -178,7 +183,7 @@ const Transactions = () => {
                 </div>
               </div>
               <p className="text-gray-500 dark:text-gray-400 text-sm font-semibold mb-1 uppercase tracking-wide">Net Earnings</p>
-              <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">${totalEarnings.toLocaleString('en-US', {minimumFractionDigits: 2})}</h2>
+              <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">{getCurrencySymbol()}{totalEarnings.toLocaleString(undefined, {minimumFractionDigits: 2})}</h2>
             </motion.div>
 
             {/* Expenses Card */}
@@ -192,7 +197,7 @@ const Transactions = () => {
                 </div>
               </div>
               <p className="text-gray-500 dark:text-gray-400 text-sm font-semibold mb-1 uppercase tracking-wide">Total Spendings</p>
-              <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">${totalSpent.toLocaleString('en-US', {minimumFractionDigits: 2})}</h2>
+              <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">{getCurrencySymbol()}{totalSpent.toLocaleString(undefined, {minimumFractionDigits: 2})}</h2>
             </motion.div>
           </div>
 
@@ -293,7 +298,7 @@ const Transactions = () => {
                           <td className="py-5 px-8 text-right">
                             <div className="flex flex-col items-end">
                               <p className={`text-base font-black ${isIncoming ? 'text-green-600 dark:text-green-400' : 'text-gray-900 dark:text-white'}`}>
-                                {isIncoming ? '+' : '-'}${o.price.toFixed(2)}
+                                {isIncoming ? '+' : '-'}{formatPrice(o.price, o.currency || o.service?.currency || 'USD')}
                               </p>
                               <p className="text-xs font-semibold text-blue-500 opacity-0 group-hover:opacity-100 transition mt-1 cursor-pointer flex items-center gap-1">
                                 Download Invoice <Download size={12}/>

@@ -271,7 +271,9 @@ const ServiceDetail = () => {
         >
           <div className="flex justify-between items-center mb-6">
             <h3 className="font-display font-extrabold text-xl text-gray-900 dark:text-white">Standard Package</h3>
-            <span className="text-3xl font-display font-extrabold text-gray-900 dark:text-white">${service.price}</span>
+            <span className="text-3xl font-display font-extrabold text-gray-900 dark:text-white">
+              {service.currency === 'INR' ? '₹' : '$'}{service.price}
+            </span>
           </div>
           
           <p className="text-slate-500 dark:text-slate-400 text-sm font-medium leading-relaxed mb-6">
@@ -310,7 +312,7 @@ const ServiceDetail = () => {
                       <p className="text-sm font-bold text-gray-900 dark:text-white">{addon.title}</p>
                       {addon.description && <p className="text-xs text-gray-500 mt-0.5">{addon.description}</p>}
                     </div>
-                    <span className="text-sm font-black text-brand-green">+${addon.price}</span>
+                    <span className="text-sm font-black text-brand-green">+{service.currency === 'INR' ? '₹' : '$'}{addon.price}</span>
                   </label>
                 ))}
               </div>
@@ -322,7 +324,7 @@ const ServiceDetail = () => {
             <div className="flex justify-between items-center mb-6 py-4 border-t border-slate-100 dark:border-dark-border/40">
               <span className="font-semibold text-slate-700 dark:text-slate-300">Total</span>
               <span className="text-2xl font-display font-extrabold text-gray-900 dark:text-white">
-                ${service.price + (service.addons || []).filter(a => selectedAddons.includes(a._id)).reduce((s, a) => s + a.price, 0)}
+                {service.currency === 'INR' ? '₹' : '$'}{service.price + (service.addons || []).filter(a => selectedAddons.includes(a._id)).reduce((s, a) => s + a.price, 0)}
               </span>
             </div>
           )}
@@ -339,7 +341,7 @@ const ServiceDetail = () => {
               onClick={handleOrder}
               className="w-full btn-success py-4 hover:scale-[1.02] shadow-3d-md hover:shadow-glow-primary rounded-2xl text-base font-bold flex items-center justify-center gap-2"
             >
-              Continue to Order{selectedAddons.length > 0 ? ` ($${service.price + (service.addons || []).filter(a => selectedAddons.includes(a._id)).reduce((s, a) => s + a.price, 0)})` : ''}
+              Continue to Order{selectedAddons.length > 0 ? ` (${service.currency === 'INR' ? '₹' : '$'}${service.price + (service.addons || []).filter(a => selectedAddons.includes(a._id)).reduce((s, a) => s + a.price, 0)})` : ''}
             </button>
           )}
         </motion.div>

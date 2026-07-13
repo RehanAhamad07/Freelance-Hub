@@ -552,7 +552,7 @@ const Profile = () => {
                                   <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-dark-border/40">
                                     <div>
                                       <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-0.5">Starting at</p>
-                                      <p className="text-xl font-display font-extrabold text-brand-blue">${gig.price}</p>
+                                      <p className="text-xl font-display font-extrabold text-brand-blue">{gig.currency === 'INR' ? '₹' : '$'}{gig.price}</p>
                                     </div>
                                     <div className="w-9 h-9 rounded-full bg-blue-50 dark:bg-blue-950/20 text-brand-blue flex items-center justify-center group-hover:bg-brand-blue group-hover:text-white transition">
                                       <ChevronRight size={18} />

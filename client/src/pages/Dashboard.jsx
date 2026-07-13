@@ -250,7 +250,7 @@ const Dashboard = () => {
                           {o.status.replace('_', ' ')}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-gray-900 dark:text-gray-100 font-bold">${o.price}</td>
+                      <td className="py-3 px-4 text-gray-900 dark:text-gray-100 font-bold">{(o.currency === 'INR' || o.service?.currency === 'INR') ? '₹' : '$'}{o.price}</td>
                       <td className="py-3 px-4 text-gray-500 dark:text-gray-400 text-sm">{new Date(o.createdAt).toLocaleDateString()}</td>
                       <td className="py-3 px-4 text-right flex items-center justify-end gap-2 flex-wrap">
                         

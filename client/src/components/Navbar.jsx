@@ -7,7 +7,7 @@ import api from '../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Navbar = () => {
-  const { user, logout } = useContext(AuthContext);
+  const { user, logout, preferredCurrency, changePreferredCurrency, formatPrice } = useContext(AuthContext);
   const [isOpen, setIsOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(
     document.documentElement.classList.contains('dark')
@@ -145,9 +145,21 @@ const Navbar = () => {
                   <Heart size={21} strokeWidth={1.75} className="group-hover:scale-110 transition-transform" />
                 </Link>
 
+                {/* Currency Selector */}
+                <select 
+                  value={preferredCurrency} 
+                  onChange={(e) => changePreferredCurrency(e.target.value)}
+                  className="bg-gray-50/80 dark:bg-dark-card/40 border border-gray-200/50 dark:border-dark-border/40 text-xs font-bold text-gray-700 dark:text-gray-300 rounded-full py-1.5 px-3.5 outline-none cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-800 transition mr-1 select-none"
+                >
+                  <option value="USD">$ USD</option>
+                  <option value="INR">₹ INR</option>
+                </select>
+
                 {/* Wallet Balance */}
-                <div className="flex items-center bg-emerald-50/80 dark:bg-emerald-950/20 border border-emerald-100/60 dark:border-emerald-900/40 rounded-full px-3.5 py-1 ml-2 mr-2 shadow-3d-sm">
-                  <span className="text-sm font-bold text-brand-green">${user.walletBalance !== undefined ? user.walletBalance : '...'}</span>
+                <div className="flex items-center bg-emerald-50/80 dark:bg-emerald-950/20 border border-emerald-100/60 dark:border-emerald-900/40 rounded-full px-3.5 py-1 ml-1 mr-2 shadow-3d-sm">
+                  <span className="text-sm font-bold text-brand-green">
+                    {user.walletBalance !== undefined ? formatPrice(user.walletBalance, 'USD') : '...'}
+                  </span>
                 </div>
                 
                 {/* Notification Bell */}
@@ -414,8 +426,20 @@ const Navbar = () => {
                   <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{user.name}</p>
                   <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
                 </div>
-                <div className="flex items-center bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40 rounded-full px-3 py-1 shadow-sm shrink-0">
-                  <span className="text-xs font-bold text-brand-green">${user.walletBalance !== undefined ? user.walletBalance : '...'}</span>
+                <div className="flex items-center gap-1.5">
+                  <select 
+                    value={preferredCurrency} 
+                    onChange={(e) => changePreferredCurrency(e.target.value)}
+                    className="bg-gray-50 dark:bg-dark-card border border-gray-200 dark:border-dark-border text-[10px] font-bold text-gray-700 dark:text-gray-300 rounded-full py-1 px-2.5 outline-none cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-800 transition"
+                  >
+                    <option value="USD">USD</option>
+                    <option value="INR">INR</option>
+                  </select>
+                  <div className="flex items-center bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40 rounded-full px-3 py-1 shadow-sm shrink-0">
+                    <span className="text-xs font-bold text-brand-green">
+                      {user.walletBalance !== undefined ? formatPrice(user.walletBalance, 'USD') : '...'}
+                    </span>
+                  </div>
                 </div>
               </div>
             )}

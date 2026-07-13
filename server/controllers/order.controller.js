@@ -96,6 +96,7 @@ const createOrder = async (req, res) => {
       freelancer: service.freelancer,
       service: service._id,
       price: totalPrice,
+      currency: service.currency || 'USD',
       escrowAmount: totalPrice,
       selectedAddons,
       status: 'in_progress',
@@ -434,7 +435,7 @@ const getDisputedOrders = async (req, res) => {
     if (!admin) return res.status(403).json({ error: 'Admin access required' });
 
     const orders = await Order.find({ status: 'disputed' })
-      .populate('service', 'title')
+      .populate('service', 'title currency')
       .populate('client', 'name email')
       .populate('freelancer', 'name email')
       .populate('disputeOpenedBy', 'name email')
@@ -535,7 +536,7 @@ const getOrders = async (req, res) => {
         { freelancer: req.user.userId }
       ]
     })
-      .populate('service', 'title images')
+      .populate('service', 'title images currency')
       .populate('client', 'name profilePicture')
       .populate('freelancer', 'name profilePicture')
       .sort({ createdAt: -1 });
