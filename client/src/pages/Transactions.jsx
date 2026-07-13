@@ -37,7 +37,7 @@ const Transactions = () => {
           const isFreelancer = o.freelancer && (o.freelancer._id === userId || o.freelancer === userId);
           const isClient = o.client && (o.client._id === userId || o.client === userId);
 
-          const orderCurrency = o.currency || o.service?.currency || 'USD';
+          const orderCurrency = o.service?.currency || o.currency || 'USD';
           const convertedPrice = convertPrice(o.price, orderCurrency);
 
           if (isFreelancer && o.status === 'completed') {
@@ -298,7 +298,7 @@ const Transactions = () => {
                           <td className="py-5 px-8 text-right">
                             <div className="flex flex-col items-end">
                               <p className={`text-base font-black ${isIncoming ? 'text-green-600 dark:text-green-400' : 'text-gray-900 dark:text-white'}`}>
-                                {isIncoming ? '+' : '-'}{formatPrice(o.price, o.currency || o.service?.currency || 'USD')}
+                                {isIncoming ? '+' : '-'}{formatPrice(o.price, o.service?.currency || o.currency || 'USD')}
                               </p>
                               <p className="text-xs font-semibold text-blue-500 opacity-0 group-hover:opacity-100 transition mt-1 cursor-pointer flex items-center gap-1">
                                 Download Invoice <Download size={12}/>

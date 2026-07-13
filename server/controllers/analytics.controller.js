@@ -18,7 +18,9 @@ const getDashboardAnalytics = async (req, res) => {
       $or: [{ freelancer: userId }, { client: userId }],
       status: 'completed',
       createdAt: { $gte: sixMonthsAgo }
-    }).select('price currency createdAt freelancer client');
+    })
+      .populate('service', 'currency')
+      .select('price currency service createdAt freelancer client');
 
     const monthlyRevenue = [];
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -35,14 +37,16 @@ const getDashboardAnalytics = async (req, res) => {
       const earned = monthOrders
         .filter(o => o.freelancer.toString() === userId)
         .reduce((sum, o) => {
-          const usdPrice = o.currency === 'INR' ? o.price / 80 : o.price;
+          const orderCurrency = o.service?.currency || o.currency || 'USD';
+          const usdPrice = orderCurrency === 'INR' ? o.price / 80 : o.price;
           return sum + (usdPrice * 0.9);
         }, 0); // after 10% platform fee
 
       const spent = monthOrders
         .filter(o => o.client.toString() === userId)
         .reduce((sum, o) => {
-          const usdPrice = o.currency === 'INR' ? o.price / 80 : o.price;
+          const orderCurrency = o.service?.currency || o.currency || 'USD';
+          const usdPrice = orderCurrency === 'INR' ? o.price / 80 : o.price;
           return sum + usdPrice;
         }, 0);
 
@@ -92,7 +96,8 @@ const getDashboardAnalytics = async (req, res) => {
     const totalEarned = completedOrders
       .filter(o => o.freelancer.toString() === userId)
       .reduce((sum, o) => {
-        const usdPrice = o.currency === 'INR' ? o.price / 80 : o.price;
+        const orderCurrency = o.service?.currency || o.currency || 'USD';
+        const usdPrice = orderCurrency === 'INR' ? o.price / 80 : o.price;
         return sum + (usdPrice * 0.9);
       }, 0);
 
