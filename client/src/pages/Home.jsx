@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { motion } from 'framer-motion';
 import { Search, Code, Palette, Video, PenTool, Music, Zap, Shield, Users, TrendingUp, CheckCircle, Globe } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext';
 
 const categories = [
   { name: 'Programming & Tech', icon: Code, image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&q=80&w=400' },
@@ -26,8 +27,15 @@ const stats = [
 ];
 
 const Home = () => {
+  const { user } = useContext(AuthContext);
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
 
   const handleSearch = (e) => {
     e.preventDefault();
